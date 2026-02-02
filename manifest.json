@@ -3,7 +3,21 @@
   "name": "GlideRead",
   "version": "1.0.0",
   "description": "Enhance readability on English websites with smart font scaling and Bionic Reading.",
-  "permissions": ["activeTab", "storage", "scripting"],
+  "permissions": ["storage", "scripting"],
+  "host_permissions": [
+    "*://*.twitter.com/*",
+    "*://*.x.com/*",
+    "*://*.reddit.com/*",
+    "*://news.ycombinator.com/*",
+    "*://*.medium.com/*",
+    "*://*.dev.to/*",
+    "*://*.techcrunch.com/*",
+    "*://*.arstechnica.com/*",
+    "*://*.theverge.com/*",
+    "*://*.hackernoon.com/*",
+    "*://*.substack.com/*"
+  ],
+  "optional_host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
   },
