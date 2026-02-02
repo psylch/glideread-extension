@@ -56,7 +56,7 @@ function bionicify(text, intensity = 'medium') {
         const boldLen = getBoldCount(token.length, intensity);
         const boldPart = token.slice(0, boldLen);
         const rest = token.slice(boldLen);
-        return `<b class="glideread-b">${escapeHtml(boldPart)}</b>${escapeHtml(rest)}`;
+        return `<span class="glideread-b">${escapeHtml(boldPart)}</span><span class="glideread-r">${escapeHtml(rest)}</span>`;
       }
       return escapeHtml(token);
     })

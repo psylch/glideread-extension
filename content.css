@@ -1,5 +1,10 @@
 .glideread-b {
   font-weight: 600;
+  opacity: 1;
+}
+
+.glideread-r {
+  opacity: 0.7;
 }
 
 .glideread-processed {
