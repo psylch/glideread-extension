@@ -39,8 +39,10 @@ function escapeHtml(str) {
  * Whitespace and punctuation are preserved as-is.
  */
 function bionicify(text, intensity = 'medium') {
-  // Split into tokens: words and non-words (spaces, punctuation)
-  const tokens = text.match(/[\p{L}\p{N}]+|[^\p{L}\p{N}]+/gu);
+  // Split into tokens: CJK chars individually, Latin/number words as groups, rest as-is
+  // CJK characters match first (single char), then Latin words, then non-word chars
+  const CJK = '\\u4e00-\\u9fff\\u3400-\\u4dbf\\u3040-\\u309f\\u30a0-\\u30ff\\uac00-\\ud7af\\uf900-\\ufaff';
+  const tokens = text.match(new RegExp(`[${CJK}]|[^${CJK}\\s\\p{P}\\p{S}]+|[\\s\\p{P}\\p{S}]+`, 'gu'));
   if (!tokens) return escapeHtml(text);
 
   return tokens
