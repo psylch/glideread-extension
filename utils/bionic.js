@@ -47,6 +47,10 @@ function bionicify(text, intensity = 'medium') {
     .map((token) => {
       // Check if token is a word (contains letters/numbers)
       if (/[\p{L}\p{N}]/u.test(token)) {
+        // Skip CJK characters — bionic reading only helps with Latin/alphabetic scripts
+        if (/[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/u.test(token)) {
+          return escapeHtml(token);
+        }
         const boldLen = getBoldCount(token.length, intensity);
         const boldPart = token.slice(0, boldLen);
         const rest = token.slice(boldLen);
