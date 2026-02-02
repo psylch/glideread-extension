@@ -1,10 +1,13 @@
-const EXCLUDED_TAGS = new Set([
+// Guard against re-injection in content script context
+if (typeof EXCLUDED_TAGS === 'undefined') {
+
+var EXCLUDED_TAGS = new Set([
   'NAV', 'HEADER', 'FOOTER', 'BUTTON', 'INPUT', 'SELECT',
   'TEXTAREA', 'CODE', 'PRE', 'SCRIPT', 'STYLE', 'SVG',
   'IMG', 'VIDEO', 'AUDIO', 'CANVAS', 'IFRAME',
 ]);
 
-const TARGET_SELECTORS = [
+var TARGET_SELECTORS = [
   'p', 'li', 'blockquote', 'td', 'th', 'dd', 'dt',
   'article', '.comment', '.post-body',
   // Site-specific
@@ -13,6 +16,8 @@ const TARGET_SELECTORS = [
   '[data-testid="tweetText"]', // Twitter/X
   '.postArticle-content',      // Medium
 ];
+
+}
 
 /**
  * Check if an element or any of its ancestors is in the exclusion list.

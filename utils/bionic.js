@@ -29,6 +29,10 @@ function getBoldCount(wordLength, intensity = 'medium') {
   return Math.ceil(wordLength * 0.55);
 }
 
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 /**
  * Convert a text string into HTML with bionic reading markup.
  * Words get their first N characters wrapped in <b>.
@@ -37,7 +41,7 @@ function getBoldCount(wordLength, intensity = 'medium') {
 function bionicify(text, intensity = 'medium') {
   // Split into tokens: words and non-words (spaces, punctuation)
   const tokens = text.match(/[\p{L}\p{N}]+|[^\p{L}\p{N}]+/gu);
-  if (!tokens) return text;
+  if (!tokens) return escapeHtml(text);
 
   return tokens
     .map((token) => {
@@ -46,9 +50,9 @@ function bionicify(text, intensity = 'medium') {
         const boldLen = getBoldCount(token.length, intensity);
         const boldPart = token.slice(0, boldLen);
         const rest = token.slice(boldLen);
-        return `<b class="glideread-b">${boldPart}</b>${rest}`;
+        return `<b class="glideread-b">${escapeHtml(boldPart)}</b>${escapeHtml(rest)}`;
       }
-      return token;
+      return escapeHtml(token);
     })
     .join('');
 }

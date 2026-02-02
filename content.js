@@ -1,3 +1,6 @@
+if (window.__glidereadInitialized) return;
+window.__glidereadInitialized = true;
+
 (async function glideread() {
   const settings = await getSettings();
   if (!settings.enabled) return;

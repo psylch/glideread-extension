@@ -1,7 +1,6 @@
+// Uses getSettings() from ../utils/sites.js for consistent defaults
 async function loadSettings() {
-  return new Promise((resolve) => {
-    chrome.storage.sync.get(null, resolve);
-  });
+  return getSettings();
 }
 
 async function init() {
@@ -66,14 +65,26 @@ function renderPresetSites(presetSites) {
   for (const [site, enabled] of entries) {
     const row = document.createElement('div');
     row.className = 'site-row';
-    row.innerHTML = `
-      <span class="site-name">${site}</span>
-      <label class="toggle small">
-        <input type="checkbox" ${enabled ? 'checked' : ''} data-site="${site}">
-        <span class="toggle-track"></span>
-      </label>
-    `;
-    row.querySelector('input').addEventListener('change', async (e) => {
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'site-name';
+    nameSpan.textContent = site;
+
+    const label = document.createElement('label');
+    label.className = 'toggle small';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = enabled;
+    checkbox.dataset.site = site;
+    const track = document.createElement('span');
+    track.className = 'toggle-track';
+    label.appendChild(checkbox);
+    label.appendChild(track);
+
+    row.appendChild(nameSpan);
+    row.appendChild(label);
+
+    checkbox.addEventListener('change', async (e) => {
       const settings = await loadSettings();
       settings.presetSites[site] = e.target.checked;
       chrome.storage.sync.set({ presetSites: settings.presetSites });
@@ -94,11 +105,20 @@ function renderCustomSites(customSites) {
   customSites.forEach((site, index) => {
     const row = document.createElement('div');
     row.className = 'site-row';
-    row.innerHTML = `
-      <span class="site-name">${site}</span>
-      <button class="remove-btn" data-index="${index}">Remove</button>
-    `;
-    row.querySelector('.remove-btn').addEventListener('click', async () => {
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'site-name';
+    nameSpan.textContent = site;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'remove-btn';
+    removeBtn.textContent = 'Remove';
+    removeBtn.dataset.index = index;
+
+    row.appendChild(nameSpan);
+    row.appendChild(removeBtn);
+
+    removeBtn.addEventListener('click', async () => {
       const settings = await loadSettings();
       settings.customSites.splice(index, 1);
       chrome.storage.sync.set({ customSites: settings.customSites });

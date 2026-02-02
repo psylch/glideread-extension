@@ -1,5 +1,7 @@
-// Default preset sites
-const DEFAULT_PRESET_SITES = {
+// Guard against re-injection in content script context
+if (typeof DEFAULT_PRESET_SITES === 'undefined') {
+
+var DEFAULT_PRESET_SITES = {
   'twitter.com': true,
   'x.com': true,
   'reddit.com': true,
@@ -13,16 +15,18 @@ const DEFAULT_PRESET_SITES = {
   'substack.com': true,
 };
 
-const DEFAULT_SETTINGS = {
+var DEFAULT_SETTINGS = {
   enabled: true,
   fontScale: 1.15,
   lineHeightScale: 1.5,
   bionicEnabled: true,
-  bionicIntensity: 'medium', // 'light' | 'medium' | 'heavy'
+  bionicIntensity: 'medium',
   presetSites: { ...DEFAULT_PRESET_SITES },
   customSites: [],
   disabledSites: [],
 };
+
+}
 
 /**
  * Check if a hostname matches the site list.
@@ -30,9 +34,6 @@ const DEFAULT_SETTINGS = {
  * myblog.substack.com matches substack.com).
  */
 function matchesSite(hostname, siteList) {
-  // Direct match
-  if (siteList.includes(hostname)) return true;
-  // Subdomain match: strip first subdomain and check
   for (const site of siteList) {
     if (hostname === site || hostname.endsWith('.' + site)) {
       return true;
@@ -49,17 +50,13 @@ async function shouldActivate(hostname) {
   const settings = await getSettings();
   if (!settings.enabled) return false;
 
-  // Check disabled list first
   if (matchesSite(hostname, settings.disabledSites)) return false;
 
-  // Check preset sites (only enabled ones)
   const enabledPresets = Object.entries(settings.presetSites)
     .filter(([, enabled]) => enabled)
     .map(([site]) => site);
 
   if (matchesSite(hostname, enabledPresets)) return true;
-
-  // Check custom sites
   if (matchesSite(hostname, settings.customSites)) return true;
 
   return false;
