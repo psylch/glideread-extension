@@ -3,7 +3,16 @@
   "name": "GlideRead",
   "version": "1.0.0",
   "description": "Enhance readability on English websites with smart font scaling and Bionic Reading.",
-  "permissions": ["storage", "scripting"],
+  "permissions": ["activeTab", "storage", "scripting"],
+  "commands": {
+    "activate-glideread": {
+      "suggested_key": {
+        "default": "Alt+G",
+        "mac": "Alt+G"
+      },
+      "description": "Activate GlideRead on current page"
+    }
+  },
   "host_permissions": [
     "*://*.twitter.com/*",
     "*://*.x.com/*",

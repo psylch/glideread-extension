@@ -38,7 +38,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   if (message.action === 'forceInject') {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]) injectIfNeeded(tabs[0].id, tabs[0].url);
+      if (tabs[0]) forceInject(tabs[0].id, tabs[0].url);
     });
     sendResponse({ ok: true });
   }
@@ -59,6 +59,30 @@ async function handleGetStatus({ hostname }) {
     siteActive,
     hostname,
   };
+}
+
+// Keyboard shortcut: force-inject on any page (activeTab grants permission)
+chrome.commands.onCommand.addListener(async (command) => {
+  if (command === 'activate-glideread') {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.url || tab.url.startsWith('chrome://')) return;
+    forceInject(tab.id, tab.url);
+  }
+});
+
+async function forceInject(tabId, url) {
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      files: ['utils/sites.js', 'utils/dom.js', 'utils/bionic.js', 'content.js'],
+    });
+    await chrome.scripting.insertCSS({
+      target: { tabId },
+      files: ['content.css'],
+    });
+  } catch (err) {
+    console.warn('GlideRead: force inject failed', err.message);
+  }
 }
 
 chrome.runtime.onInstalled.addListener(async () => {
