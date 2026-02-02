@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GlideRead Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header class="page-header">
+      <img src="../icons/icon48.png" alt="GlideRead" class="logo">
+      <h1>GlideRead Settings</h1>
+    </header>
+
+    <!-- Section 1: Reading Enhancement -->
+    <section class="card">
+      <h2 class="section-title">Reading Enhancement</h2>
+
+      <!-- Font Scale -->
+      <div class="setting-row">
+        <div class="setting-label">
+          <span class="label-text">Font Scale</span>
+          <span class="label-value" id="font-scale-value">1.15x</span>
+        </div>
+        <input
+          type="range"
+          id="font-scale"
+          min="1.0"
+          max="1.5"
+          step="0.05"
+          value="1.15"
+          class="slider"
+        >
+        <div class="slider-range">
+          <span>1.0x</span>
+          <span>1.5x</span>
+        </div>
+      </div>
+
+      <!-- Line Height -->
+      <div class="setting-row">
+        <div class="setting-label">
+          <span class="label-text">Line Height</span>
+          <span class="label-value" id="line-height-value">1.5x</span>
+        </div>
+        <input
+          type="range"
+          id="line-height-scale"
+          min="1.0"
+          max="2.0"
+          step="0.1"
+          value="1.5"
+          class="slider"
+        >
+        <div class="slider-range">
+          <span>1.0x</span>
+          <span>2.0x</span>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Bionic Reading Toggle -->
+      <div class="setting-row inline">
+        <span class="label-text">Bionic Reading</span>
+        <label class="toggle">
+          <input type="checkbox" id="bionic-toggle" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
+      <!-- Bionic Intensity -->
+      <div class="setting-row">
+        <span class="label-text label-sub">Intensity</span>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="intensity" value="light">
+            <span class="radio-custom"></span>
+            <span class="radio-text">Light</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="intensity" value="medium" checked>
+            <span class="radio-custom"></span>
+            <span class="radio-text">Medium</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="intensity" value="heavy">
+            <span class="radio-custom"></span>
+            <span class="radio-text">Heavy</span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Site Management -->
+    <section class="card">
+      <h2 class="section-title">Site Management</h2>
+
+      <h3 class="subsection-title">Preset Sites</h3>
+      <div id="preset-sites" class="site-list"></div>
+
+      <hr class="divider">
+
+      <h3 class="subsection-title">Custom Sites</h3>
+      <div class="add-site-row">
+        <input
+          type="text"
+          id="new-site"
+          placeholder="example.com"
+          class="site-input"
+        >
+        <button id="add-site-btn" class="btn-add">Add Site</button>
+      </div>
+      <div id="custom-sites" class="site-list"></div>
+    </section>
+
+    <!-- Section 3: About -->
+    <section class="card">
+      <h2 class="section-title">About</h2>
+      <div class="about-content">
+        <p class="about-version">GlideRead <strong>v1.0.0</strong></p>
+        <p class="about-description">
+          Enhance readability on English websites with smart font scaling and
+          Bionic Reading. GlideRead automatically adjusts text on your favorite
+          sites so you can read faster and more comfortably.
+        </p>
+        <p class="about-link">
+          <a href="https://github.com/nicekid1/GlideRead/issues" target="_blank" rel="noopener noreferrer">
+            Send Feedback
+          </a>
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>
