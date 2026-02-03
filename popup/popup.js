@@ -35,17 +35,24 @@ async function init() {
     hostname,
   });
 
-  toggle.checked = response.enabled;
-  statusText.textContent = response.enabled ? t('on') : t('off');
+  toggle.checked = response.siteActive;
+  statusText.textContent = response.siteActive ? t('on') : t('off');
   updateSiteStatus(response);
 }
 
 toggle.addEventListener('change', async () => {
-  const enabled = toggle.checked;
-  statusText.textContent = enabled ? t('on') : t('off');
-  await chrome.runtime.sendMessage({ action: 'toggle', enabled });
-  if (enabled) {
+  const active = toggle.checked;
+  statusText.textContent = active ? t('on') : t('off');
+  const hostname = await getCurrentHostname();
+  if (active) {
     await chrome.runtime.sendMessage({ action: 'forceInject' });
+    if (hostname) {
+      siteStatus.textContent = `${t('activeOn')} ${hostname}`;
+      siteStatus.classList.add('active');
+    }
+  } else {
+    siteStatus.textContent = `${t('notActiveOn')} ${hostname || t('thisPage')}`;
+    siteStatus.classList.remove('active');
   }
 });
 
