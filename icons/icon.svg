@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1de9b6"/>
+      <stop offset="100%" style="stop-color:#0d9373"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square background -->
+  <rect width="128" height="128" rx="28" ry="28" fill="url(#bg)"/>
+  <!-- "G" letter with bionic-style partial bold -->
+  <text x="64" y="58" text-anchor="middle" dominant-baseline="central"
+    font-family="'SF Pro Display', 'Inter', 'Helvetica Neue', Arial, sans-serif"
+    font-size="76" font-weight="800" fill="white" letter-spacing="-2">G</text>
+  <!-- Three horizontal lines representing text/reading -->
+  <rect x="34" y="90" width="32" height="4" rx="2" fill="white" opacity="0.9"/>
+  <rect x="34" y="100" width="60" height="4" rx="2" fill="white" opacity="0.5"/>
+  <rect x="34" y="110" width="46" height="4" rx="2" fill="white" opacity="0.3"/>
+</svg>

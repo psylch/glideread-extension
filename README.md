@@ -1,13 +1,29 @@
-# GlideRead
+<p align="center">
+  <img src="icons/icon128.png" width="80" height="80" alt="GlideRead">
+</p>
 
-Chrome Extension that enhances readability on English websites with smart font scaling and Bionic Reading.
+<h1 align="center">GlideRead</h1>
 
-Built for non-native English readers who find information-dense English text hard to scan.
+<p align="center">
+  Enhance readability on English websites with smart font scaling and Bionic Reading.
+  <br>
+  <a href="https://github.com/psylch/GlideRead/releases/latest">Download Latest Release</a>
+</p>
+
+<p align="center">
+  <a href="#features">Features</a> &middot;
+  <a href="#install">Install</a> &middot;
+  <a href="#configuration">Configuration</a> &middot;
+  <a href="README_CN.md">中文文档</a>
+</p>
+
+---
 
 ## Features
 
 - **Smart Font Scaling** - Enlarges body text only (not UI elements), configurable 1.0x - 1.5x
-- **Bionic Reading** - Bolds the first portion of each word to create fixation points, guiding the eye faster through text. Skips CJK characters for clean mixed-language support
+- **Bionic Reading** - Bolds the first portion of each word to create fixation points, guiding the eye faster through text
+- **CJK Aware** - Skips Chinese, Japanese, and Korean characters for clean mixed-language support
 - **Soft Contrast** - Uses opacity-based highlighting instead of harsh bolding, comfortable on both light and dark themes
 - **Smart Site Matching** - Preset list of info-dense sites (X, Reddit, HN, Medium, etc.) with custom site support
 - **SPA Support** - Handles dynamic content loading and DOM recycling on modern web apps
@@ -15,12 +31,21 @@ Built for non-native English readers who find information-dense English text har
 
 ## Install
 
+### From Release
+
+1. Download `glideread-v*.zip` from the [Releases page](https://github.com/psylch/GlideRead/releases/latest)
+2. Unzip the file
+3. Open `chrome://extensions` in Chrome
+4. Enable **Developer Mode** (top right)
+5. Click **Load unpacked** and select the unzipped folder
+
 ### From Source
 
-1. Clone this repo
-2. Open `chrome://extensions`
-3. Enable Developer Mode
-4. Click "Load unpacked" and select the project folder
+```bash
+git clone https://github.com/psylch/GlideRead.git
+```
+
+Then load the cloned folder as an unpacked extension in Chrome.
 
 ### Keyboard Shortcut
 
@@ -36,7 +61,7 @@ Click the extension icon for a quick toggle. Open **Settings** for:
 
 ## Preset Sites
 
-twitter.com, x.com, reddit.com, news.ycombinator.com, medium.com, dev.to, techcrunch.com, arstechnica.com, theverge.com, hackernoon.com, substack.com
+`twitter.com` `x.com` `reddit.com` `news.ycombinator.com` `medium.com` `dev.to` `techcrunch.com` `arstechnica.com` `theverge.com` `hackernoon.com` `substack.com`
 
 ## Author
 
@@ -44,4 +69,4 @@ twitter.com, x.com, reddit.com, news.ycombinator.com, medium.com, dev.to, techcr
 
 ## License
 
-MIT
+[MIT](LICENSE)
