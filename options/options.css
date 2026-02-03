@@ -44,6 +44,25 @@ body {
   font-weight: 700;
   color: #1d1d1f;
   letter-spacing: -0.3px;
+  flex: 1;
+}
+
+.lang-toggle {
+  background: none;
+  border: 1.5px solid #d1d1d6;
+  color: #6e6e73;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  padding: 3px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.lang-toggle:hover {
+  color: #16c79a;
+  border-color: #16c79a;
 }
 
 /* ===== Card ===== */
@@ -116,6 +135,93 @@ body {
   color: #6e6e73;
   margin-bottom: 10px;
   display: block;
+}
+
+/* ===== Mode Selector ===== */
+
+.mode-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.mode-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1.5px solid #e5e5ea;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.mode-option:hover {
+  border-color: #c8c8cc;
+  background: #fafafa;
+}
+
+.mode-option input[type='radio'] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.mode-option input[type='radio']:checked ~ .mode-radio {
+  border-color: #16c79a;
+}
+
+.mode-option input[type='radio']:checked ~ .mode-radio::after {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.mode-option input[type='radio']:checked ~ .mode-info .mode-name {
+  color: #16c79a;
+}
+
+.mode-radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #d1d1d6;
+  position: relative;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: border-color 0.2s ease;
+}
+
+.mode-radio::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #16c79a;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.2s ease;
+}
+
+.mode-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mode-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1d1d1f;
+  transition: color 0.2s ease;
+}
+
+.mode-desc {
+  font-size: 12.5px;
+  color: #aeaeb2;
+  line-height: 1.45;
 }
 
 .label-value {

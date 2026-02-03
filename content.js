@@ -7,7 +7,7 @@
   const intensity = settings.bionicIntensity || 'medium';
   const fontScale = settings.fontScale || 1.15;
   const lineHeightScale = settings.lineHeightScale || 1.5;
-  const bionicEnabled = settings.bionicEnabled !== false;
+  const readingMode = settings.readingMode || 'enlarge';
   const targetSelector = TARGET_SELECTORS.join(', ');
 
   function processElement(el) {
@@ -23,10 +23,10 @@
     }
 
     // Bionic reading
-    if (bionicEnabled) {
+    if (readingMode === 'glideread' || readingMode === 'bionic') {
       const textNodes = getTextNodes(el);
       textNodes.forEach((textNode) => {
-        const html = bionicify(textNode.textContent, intensity);
+        const html = bionicify(textNode.textContent, intensity, readingMode);
         const wrapper = document.createElement('span');
         wrapper.classList.add('glideread-bionic');
         wrapper.innerHTML = html;

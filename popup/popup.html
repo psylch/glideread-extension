@@ -8,7 +8,8 @@
   <div class="container">
     <div class="header">
       <span class="logo">G</span>
-      <span class="title">GlideRead</span>
+      <span class="title" data-i18n="appName">GlideRead</span>
+      <button id="lang-toggle" class="lang-toggle">中</button>
     </div>
     <div class="toggle-row">
       <label class="switch">
@@ -17,14 +18,15 @@
       </label>
       <span id="status-text" class="status-text">ON</span>
     </div>
-    <div id="site-status" class="site-status">
+    <div id="site-status" class="site-status" data-i18n="checkingSite">
       Checking current site...
     </div>
     <div class="footer">
-      <a id="settings-link" class="settings-link">Settings</a>
+      <a id="settings-link" class="settings-link" data-i18n="settings">Settings</a>
       <span class="credit">by <a href="https://github.com/psylch" target="_blank">psylch</a></span>
     </div>
   </div>
+  <script src="../utils/i18n.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

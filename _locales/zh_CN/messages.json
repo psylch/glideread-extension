@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "GlideRead",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "通过智能字体缩放和仿生阅读，提升英文网站的可读性。",
+    "description": "Extension description"
+  },
+  "commandActivate": {
+    "message": "在当前页面激活 GlideRead",
+    "description": "Keyboard shortcut description"
+  }
+}

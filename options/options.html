@@ -10,17 +10,18 @@
   <div class="container">
     <header class="page-header">
       <img src="../icons/icon48.png" alt="GlideRead" class="logo">
-      <h1>GlideRead Settings</h1>
+      <h1 data-i18n="settingsTitle">GlideRead Settings</h1>
+      <button id="lang-toggle" class="lang-toggle">中</button>
     </header>
 
     <!-- Section 1: Reading Enhancement -->
     <section class="card">
-      <h2 class="section-title">Reading Enhancement</h2>
+      <h2 class="section-title" data-i18n="readingEnhancement">Reading Enhancement</h2>
 
       <!-- Font Scale -->
       <div class="setting-row">
         <div class="setting-label">
-          <span class="label-text">Font Scale</span>
+          <span class="label-text" data-i18n="fontScale">Font Scale</span>
           <span class="label-value" id="font-scale-value">1.15x</span>
         </div>
         <input
@@ -41,7 +42,7 @@
       <!-- Line Height -->
       <div class="setting-row">
         <div class="setting-label">
-          <span class="label-text">Line Height</span>
+          <span class="label-text" data-i18n="lineHeight">Line Height</span>
           <span class="label-value" id="line-height-value">1.5x</span>
         </div>
         <input
@@ -61,33 +62,55 @@
 
       <hr class="divider">
 
-      <!-- Bionic Reading Toggle -->
-      <div class="setting-row inline">
-        <span class="label-text">Bionic Reading</span>
-        <label class="toggle">
-          <input type="checkbox" id="bionic-toggle" checked>
-          <span class="toggle-track"></span>
-        </label>
+      <!-- Reading Mode -->
+      <div class="setting-row">
+        <span class="label-text" data-i18n="readingMode">Reading Mode</span>
+        <div class="mode-group">
+          <label class="mode-option">
+            <input type="radio" name="reading-mode" value="glideread">
+            <span class="mode-radio"></span>
+            <span class="mode-info">
+              <span class="mode-name" data-i18n="modeGlideread">GlideRead</span>
+              <span class="mode-desc" data-i18n="modeGlidereadDesc">Bold first letters + fade the rest. Guides your eyes with soft contrast.</span>
+            </span>
+          </label>
+          <label class="mode-option">
+            <input type="radio" name="reading-mode" value="bionic">
+            <span class="mode-radio"></span>
+            <span class="mode-info">
+              <span class="mode-name" data-i18n="modeBionic">Bionic Reading</span>
+              <span class="mode-desc" data-i18n="modeBionicDesc">Classic bold-first-letters style. Heavier weight, no opacity change.</span>
+            </span>
+          </label>
+          <label class="mode-option">
+            <input type="radio" name="reading-mode" value="enlarge">
+            <span class="mode-radio"></span>
+            <span class="mode-info">
+              <span class="mode-name" data-i18n="modeEnlarge">Enlarge Only</span>
+              <span class="mode-desc" data-i18n="modeEnlargeDesc">Only scale up font size and line height. Clean and distraction-free.</span>
+            </span>
+          </label>
+        </div>
       </div>
 
       <!-- Bionic Intensity -->
       <div class="setting-row">
-        <span class="label-text label-sub">Intensity</span>
+        <span class="label-text label-sub" data-i18n="intensity">Intensity</span>
         <div class="radio-group">
           <label class="radio-label">
             <input type="radio" name="intensity" value="light">
             <span class="radio-custom"></span>
-            <span class="radio-text">Light</span>
+            <span class="radio-text" data-i18n="light">Light</span>
           </label>
           <label class="radio-label">
             <input type="radio" name="intensity" value="medium" checked>
             <span class="radio-custom"></span>
-            <span class="radio-text">Medium</span>
+            <span class="radio-text" data-i18n="medium">Medium</span>
           </label>
           <label class="radio-label">
             <input type="radio" name="intensity" value="heavy">
             <span class="radio-custom"></span>
-            <span class="radio-text">Heavy</span>
+            <span class="radio-text" data-i18n="heavy">Heavy</span>
           </label>
         </div>
       </div>
@@ -95,14 +118,14 @@
 
     <!-- Section 2: Site Management -->
     <section class="card">
-      <h2 class="section-title">Site Management</h2>
+      <h2 class="section-title" data-i18n="siteManagement">Site Management</h2>
 
-      <h3 class="subsection-title">Preset Sites</h3>
+      <h3 class="subsection-title" data-i18n="presetSites">Preset Sites</h3>
       <div id="preset-sites" class="site-list"></div>
 
       <hr class="divider">
 
-      <h3 class="subsection-title">Custom Sites</h3>
+      <h3 class="subsection-title" data-i18n="customSites">Custom Sites</h3>
       <div class="add-site-row">
         <input
           type="text"
@@ -110,26 +133,26 @@
           placeholder="example.com"
           class="site-input"
         >
-        <button id="add-site-btn" class="btn-add">Add Site</button>
+        <button id="add-site-btn" class="btn-add" data-i18n="addSite">Add Site</button>
       </div>
       <div id="custom-sites" class="site-list"></div>
     </section>
 
     <!-- Section 3: About -->
     <section class="card">
-      <h2 class="section-title">About</h2>
+      <h2 class="section-title" data-i18n="about">About</h2>
       <div class="about-content">
         <p class="about-version">GlideRead <strong>v1.0.0</strong></p>
-        <p class="about-description">
+        <p class="about-description" data-i18n="description">
           Enhance readability on English websites with smart font scaling and
           Bionic Reading. GlideRead automatically adjusts text on your favorite
           sites so you can read faster and more comfortably.
         </p>
         <p class="about-author">
-          Made by <a href="https://github.com/psylch" target="_blank" rel="noopener noreferrer">psylch</a>
+          <span data-i18n="madeBy">Made by</span> <a href="https://github.com/psylch" target="_blank" rel="noopener noreferrer">psylch</a>
         </p>
         <p class="about-link">
-          <a href="https://github.com/psylch/GlideRead/issues" target="_blank" rel="noopener noreferrer">
+          <a href="https://github.com/psylch/GlideRead/issues" target="_blank" rel="noopener noreferrer" data-i18n="sendFeedback">
             Send Feedback
           </a>
           &nbsp;&middot;&nbsp;
@@ -142,6 +165,7 @@
   </div>
 
   <script src="../utils/sites.js"></script>
+  <script src="../utils/i18n.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

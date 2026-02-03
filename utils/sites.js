@@ -19,7 +19,7 @@ var DEFAULT_SETTINGS = {
   enabled: true,
   fontScale: 1.15,
   lineHeightScale: 1.5,
-  bionicEnabled: true,
+  readingMode: 'glideread',
   bionicIntensity: 'medium',
   presetSites: { ...DEFAULT_PRESET_SITES },
   customSites: [],

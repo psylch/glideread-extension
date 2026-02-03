@@ -38,7 +38,7 @@ function escapeHtml(str) {
  * Words get their first N characters wrapped in <b>.
  * Whitespace and punctuation are preserved as-is.
  */
-function bionicify(text, intensity = 'medium') {
+function bionicify(text, intensity = 'medium', mode = 'glideread') {
   // Split into tokens: CJK chars individually, Latin/number words as groups, rest as-is
   // CJK characters match first (single char), then Latin words, then non-word chars
   const CJK = '\\u4e00-\\u9fff\\u3400-\\u4dbf\\u3040-\\u309f\\u30a0-\\u30ff\\uac00-\\ud7af\\uf900-\\ufaff';
@@ -56,6 +56,9 @@ function bionicify(text, intensity = 'medium') {
         const boldLen = getBoldCount(token.length, intensity);
         const boldPart = token.slice(0, boldLen);
         const rest = token.slice(boldLen);
+        if (mode === 'bionic') {
+          return `<span class="glideread-bb">${escapeHtml(boldPart)}</span>${escapeHtml(rest)}`;
+        }
         return `<span class="glideread-b">${escapeHtml(boldPart)}</span><span class="glideread-r">${escapeHtml(rest)}</span>`;
       }
       return escapeHtml(token);

@@ -3,7 +3,13 @@ async function loadSettings() {
   return getSettings();
 }
 
+const langToggle = document.getElementById('lang-toggle');
+
 async function init() {
+  const locale = await initLocale();
+  updateLangButton(locale);
+  applyI18n();
+
   const settings = await loadSettings();
 
   // Font scale slider
@@ -24,11 +30,13 @@ async function init() {
     chrome.storage.sync.set({ lineHeightScale: parseFloat(e.target.value) });
   });
 
-  // Bionic toggle
-  const bionicToggle = document.getElementById('bionic-toggle');
-  bionicToggle.checked = settings.bionicEnabled !== false;
-  bionicToggle.addEventListener('change', (e) => {
-    chrome.storage.sync.set({ bionicEnabled: e.target.checked });
+  // Reading mode radios
+  const readingMode = settings.readingMode || 'enlarge';
+  document.querySelector(`input[name="reading-mode"][value="${readingMode}"]`).checked = true;
+  document.querySelectorAll('input[name="reading-mode"]').forEach((radio) => {
+    radio.addEventListener('change', (e) => {
+      chrome.storage.sync.set({ readingMode: e.target.value });
+    });
   });
 
   // Bionic intensity radios
@@ -58,7 +66,10 @@ function renderPresetSites(presetSites) {
 
   const entries = Object.entries(presetSites);
   if (entries.length === 0) {
-    container.innerHTML = '<div class="empty-state">No preset sites configured.</div>';
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.textContent = t('noPresetSites');
+    container.appendChild(empty);
     return;
   }
 
@@ -98,7 +109,10 @@ function renderCustomSites(customSites) {
   container.innerHTML = '';
 
   if (customSites.length === 0) {
-    container.innerHTML = '<div class="empty-state">No custom sites added yet.</div>';
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.textContent = t('noCustomSites');
+    container.appendChild(empty);
     return;
   }
 
@@ -112,7 +126,7 @@ function renderCustomSites(customSites) {
 
     const removeBtn = document.createElement('button');
     removeBtn.className = 'remove-btn';
-    removeBtn.textContent = 'Remove';
+    removeBtn.textContent = t('remove');
     removeBtn.dataset.index = index;
 
     row.appendChild(nameSpan);
@@ -147,6 +161,21 @@ async function addCustomSite() {
     renderCustomSites(settings.customSites);
   }
   input.value = '';
+}
+
+langToggle.addEventListener('click', async () => {
+  const newLocale = getLocale() === 'en' ? 'zh' : 'en';
+  await setLocale(newLocale);
+  updateLangButton(newLocale);
+  applyI18n();
+  // Re-render site lists to update dynamic strings
+  const settings = await loadSettings();
+  renderPresetSites(settings.presetSites || {});
+  renderCustomSites(settings.customSites || []);
+});
+
+function updateLangButton(locale) {
+  langToggle.textContent = locale === 'en' ? '中' : 'EN';
 }
 
 init();

@@ -45,6 +45,24 @@ body {
   font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.3px;
+  flex: 1;
+}
+
+.lang-toggle {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  font-family: inherit;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.lang-toggle:hover {
+  color: #16c79a;
+  border-color: #16c79a;
 }
 
 /* ---- Toggle row ---- */
