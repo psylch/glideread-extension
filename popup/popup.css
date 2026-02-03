@@ -115,16 +115,35 @@ body {
   color: #16c79a;
 }
 
-/* ---- Settings link ---- */
+/* ---- Footer ---- */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .settings-link {
   font-size: 12px;
   color: #16c79a;
   text-decoration: none;
   cursor: pointer;
-  align-self: flex-start;
   transition: text-decoration 0.15s ease;
 }
 
 .settings-link:hover {
   text-decoration: underline;
+}
+
+.credit {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.credit a {
+  color: rgba(255, 255, 255, 0.45);
+  text-decoration: none;
+}
+
+.credit a:hover {
+  color: #16c79a;
 }

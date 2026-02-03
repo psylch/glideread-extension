@@ -444,7 +444,21 @@ body {
 }
 
 .about-description {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+}
+
+.about-author {
+  margin-bottom: 10px;
+}
+
+.about-author a {
+  color: #16c79a;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.about-author a:hover {
+  text-decoration: underline;
 }
 
 .about-link a {
