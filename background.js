@@ -53,7 +53,26 @@ async function handleToggle({ enabled }) {
 
 async function handleGetStatus({ hostname }) {
   const settings = await getSettings();
-  const siteActive = await shouldActivate(hostname);
+  let siteActive = await shouldActivate(hostname);
+
+  // If not in site list, probe the tab to see if already injected
+  if (!siteActive) {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab) {
+        const results = await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          func: () => !!window.__glidereadInitialized,
+        });
+        if (results?.[0]?.result) {
+          siteActive = true;
+        }
+      }
+    } catch {
+      // Tab not scriptable (e.g. chrome:// pages)
+    }
+  }
+
   return {
     enabled: settings.enabled,
     siteActive,
