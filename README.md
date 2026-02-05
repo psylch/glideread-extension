@@ -7,7 +7,7 @@
 <p align="center">
   Enhance readability on English websites with smart font scaling and Bionic Reading.
   <br>
-  <a href="https://github.com/psylch/GlideRead/releases/latest">Download Latest Release</a>
+  <a href="https://github.com/psylch/glideread-extension/releases/latest">Download Latest Release</a>
 </p>
 
 <p align="center">
@@ -33,7 +33,7 @@
 
 ### From Release
 
-1. Download `glideread-v*.zip` from the [Releases page](https://github.com/psylch/GlideRead/releases/latest)
+1. Download `glideread-v*.zip` from the [Releases page](https://github.com/psylch/glideread-extension/releases/latest)
 2. Unzip the file
 3. Open `chrome://extensions` in Chrome
 4. Enable **Developer Mode** (top right)
@@ -42,7 +42,7 @@
 ### From Source
 
 ```bash
-git clone https://github.com/psylch/GlideRead.git
+git clone https://github.com/psylch/glideread-extension.git
 ```
 
 Then load the cloned folder as an unpacked extension in Chrome.

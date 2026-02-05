@@ -7,7 +7,7 @@
 <p align="center">
   为非英语母语者打造的浏览器阅读增强插件，智能放大字体 + 仿生阅读。
   <br>
-  <a href="https://github.com/psylch/GlideRead/releases/latest">下载最新版本</a>
+  <a href="https://github.com/psylch/glideread-extension/releases/latest">下载最新版本</a>
 </p>
 
 <p align="center">
@@ -33,7 +33,7 @@
 
 ### 从 Release 安装
 
-1. 从 [Releases 页面](https://github.com/psylch/GlideRead/releases/latest) 下载 `glideread-v*.zip`
+1. 从 [Releases 页面](https://github.com/psylch/glideread-extension/releases/latest) 下载 `glideread-v*.zip`
 2. 解压文件
 3. 打开 Chrome 访问 `chrome://extensions`
 4. 开启右上角的 **开发者模式**
@@ -42,7 +42,7 @@
 ### 从源码安装
 
 ```bash
-git clone https://github.com/psylch/GlideRead.git
+git clone https://github.com/psylch/glideread-extension.git
 ```
 
 然后在 Chrome 中以未打包扩展的方式加载该文件夹。
