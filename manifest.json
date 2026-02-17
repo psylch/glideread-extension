@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "__MSG_extName__",
   "default_locale": "en",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "__MSG_extDescription__",
   "permissions": ["activeTab", "storage", "scripting"],
   "commands": {
@@ -25,7 +25,8 @@
     "*://*.arstechnica.com/*",
     "*://*.theverge.com/*",
     "*://*.hackernoon.com/*",
-    "*://*.substack.com/*"
+    "*://*.substack.com/*",
+    "*://*.discord.com/*"
   ],
   "optional_host_permissions": ["<all_urls>"],
   "background": {
