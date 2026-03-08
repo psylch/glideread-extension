@@ -143,6 +143,7 @@ body {
 .header {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   margin-bottom: 20px;
   padding: 0 2px;
@@ -172,17 +173,10 @@ body {
 
 .header-title {
   font-family: 'Caveat', cursive;
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 700;
   letter-spacing: 0.2px;
   color: var(--text);
-  flex: 1;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .version-badge {
@@ -219,7 +213,16 @@ body {
 .tabs-row {
   display: flex;
   align-items: center;
+  gap: 10px;
   margin-bottom: 14px;
+  width: 100%;
+}
+
+.tabs-row-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .tabs {

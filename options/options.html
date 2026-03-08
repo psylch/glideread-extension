@@ -11,15 +11,11 @@
 </head>
 <body>
   <div class="container">
-    <!-- Header -->
+    <!-- Header (centered) -->
     <div class="header">
       <img class="logo-mark logo-light" src="../icons/icon-light.png" alt="GlideRead">
       <img class="logo-mark logo-dark" src="../icons/icon-dark.png" alt="GlideRead">
       <span class="header-title">GlideRead</span>
-      <div class="header-actions">
-        <span class="version-badge">v1.2.1</span>
-        <button id="lang-toggle" class="lang-toggle">中</button>
-      </div>
     </div>
 
     <!-- Tab bar row -->
@@ -28,6 +24,9 @@
         <span class="tabs-indicator" id="tabs-indicator"></span>
         <button class="tab-btn" data-tab="reading" data-active="true" data-i18n="tabReading">Reading Mode</button>
         <button class="tab-btn" data-tab="sites" data-active="false" data-i18n="tabSites">Site Management</button>
+      </div>
+      <div class="tabs-row-actions">
+        <button id="lang-toggle" class="lang-toggle">中</button>
       </div>
     </div>
 
@@ -136,6 +135,8 @@
       <div class="setting-divider"></div>
       <div class="about-row">
         <span class="about-text">
+          <span class="version-badge">v1.2.2</span>
+          <span class="about-dot">&middot;</span>
           <span data-i18n="madeBy">Made by</span> <a href="https://github.com/psylch" target="_blank" rel="noopener noreferrer">psylch</a>
         </span>
         <span class="about-links">
