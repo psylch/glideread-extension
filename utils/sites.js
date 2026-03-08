@@ -17,6 +17,7 @@ var DEFAULT_PRESET_SITES = {
 
 var DEFAULT_SETTINGS = {
   enabled: true,
+  theme: 'system',
   fontScale: 1.15,
   lineHeightScale: 1.5,
   readingMode: 'glideread',

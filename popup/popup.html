@@ -2,12 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <span class="logo">G</span>
+      <img class="logo logo-light" src="../icons/icon-light.png" alt="GlideRead">
+      <img class="logo logo-dark" src="../icons/icon-dark.png" alt="GlideRead">
       <span class="title" data-i18n="appName">GlideRead</span>
       <button id="lang-toggle" class="lang-toggle">中</button>
     </div>
@@ -17,6 +21,7 @@
         <span class="slider"></span>
       </label>
       <span id="status-text" class="status-text">ON</span>
+      <span id="status-dot" class="status-dot"></span>
     </div>
     <div id="site-status" class="site-status" data-i18n="checkingSite">
       Checking current site...

@@ -4,164 +4,147 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GlideRead Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
   <div class="container">
-    <header class="page-header">
-      <img src="../icons/icon48.png" alt="GlideRead" class="logo">
-      <h1 data-i18n="settingsTitle">GlideRead Settings</h1>
-      <button id="lang-toggle" class="lang-toggle">中</button>
-    </header>
+    <!-- Header -->
+    <div class="header">
+      <img class="logo-mark logo-light" src="../icons/icon-light.png" alt="GlideRead">
+      <img class="logo-mark logo-dark" src="../icons/icon-dark.png" alt="GlideRead">
+      <span class="header-title">GlideRead</span>
+      <div class="header-actions">
+        <span class="version-badge">v1.2.1</span>
+        <button id="lang-toggle" class="lang-toggle">中</button>
+      </div>
+    </div>
 
-    <!-- Section 1: Reading Enhancement -->
-    <section class="card">
-      <h2 class="section-title" data-i18n="readingEnhancement">Reading Enhancement</h2>
+    <!-- Tab bar row -->
+    <div class="tabs-row">
+      <div class="tabs" id="tabs">
+        <span class="tabs-indicator" id="tabs-indicator"></span>
+        <button class="tab-btn" data-tab="reading" data-active="true" data-i18n="tabReading">Reading Mode</button>
+        <button class="tab-btn" data-tab="sites" data-active="false" data-i18n="tabSites">Site Management</button>
+      </div>
+    </div>
 
-      <!-- Font Scale -->
-      <div class="setting-row">
-        <div class="setting-label">
-          <span class="label-text" data-i18n="fontScale">Font Scale</span>
-          <span class="label-value" id="font-scale-value">1.15x</span>
+    <!-- Main panel -->
+    <div class="panel" id="panel">
+
+      <!-- Tab: Reading Mode -->
+      <div class="tab-content" data-content="reading" data-active="true">
+
+        <!-- Theme -->
+        <div class="setting-row setting-row-inline">
+          <div>
+            <p class="setting-title" data-i18n="themeTitle">Appearance</p>
+            <p class="setting-desc" data-i18n="themeDesc">Follow system or choose manually</p>
+          </div>
+          <div class="segmented" id="theme-picker" data-name="theme">
+            <span class="segmented-indicator"></span>
+            <button class="segmented-btn" data-value="system" data-i18n="themeSystem">System</button>
+            <button class="segmented-btn" data-value="light" data-i18n="themeLight">Light</button>
+            <button class="segmented-btn" data-value="dark" data-i18n="themeDark">Dark</button>
+          </div>
         </div>
-        <input
-          type="range"
-          id="font-scale"
-          min="1.0"
-          max="1.5"
-          step="0.05"
-          value="1.15"
-          class="slider"
-        >
-        <div class="slider-range">
-          <span>1.0x</span>
-          <span>1.5x</span>
+
+        <div class="setting-divider"></div>
+
+        <!-- Reading Mode -->
+        <div class="setting-row setting-row-inline">
+          <div>
+            <p class="setting-title" data-i18n="readingMode">Reading Mode</p>
+            <p class="setting-desc" id="mode-desc" data-i18n="modeGlidereadDesc">Bold first letters + fade the rest. Guides your eyes with soft contrast.</p>
+          </div>
+          <div class="segmented" id="mode-picker" data-name="reading-mode">
+            <span class="segmented-indicator"></span>
+            <button class="segmented-btn" data-value="glideread">GlideRead</button>
+            <button class="segmented-btn" data-value="bionic" data-i18n="modeBionic">Bionic</button>
+            <button class="segmented-btn" data-value="enlarge" data-i18n="modeEnlarge">Enlarge</button>
+          </div>
+        </div>
+
+        <div class="setting-divider"></div>
+
+        <!-- Advanced Settings (collapsible) -->
+        <div class="advanced-section" id="advanced-section">
+          <button class="advanced-trigger" id="advanced-trigger">
+            <span data-i18n="advancedSettings">Advanced Settings</span>
+            <svg class="advanced-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="advanced-body" id="advanced-body">
+            <!-- Font Scale -->
+            <div class="setting-row">
+              <div class="setting-label-row">
+                <span class="setting-title-sm" data-i18n="fontScale">Font Scale</span>
+                <span class="label-value" id="font-scale-value">1.15x</span>
+              </div>
+              <input type="range" id="font-scale" min="1.0" max="1.5" step="0.05" value="1.15" class="slider">
+              <div class="slider-range"><span>1.0x</span><span>1.5x</span></div>
+            </div>
+
+            <!-- Line Height -->
+            <div class="setting-row">
+              <div class="setting-label-row">
+                <span class="setting-title-sm" data-i18n="lineHeight">Line Height</span>
+                <span class="label-value" id="line-height-value">1.5x</span>
+              </div>
+              <input type="range" id="line-height-scale" min="1.0" max="2.0" step="0.1" value="1.5" class="slider">
+              <div class="slider-range"><span>1.0x</span><span>2.0x</span></div>
+            </div>
+
+            <!-- Intensity -->
+            <div class="setting-row setting-row-inline">
+              <span class="setting-title-sm" data-i18n="intensity">Intensity</span>
+              <div class="segmented segmented-sm" id="intensity-picker" data-name="intensity">
+                <span class="segmented-indicator"></span>
+                <button class="segmented-btn" data-value="light" data-i18n="light">Light</button>
+                <button class="segmented-btn" data-value="medium" data-i18n="medium">Medium</button>
+                <button class="segmented-btn" data-value="heavy" data-i18n="heavy">Heavy</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Line Height -->
-      <div class="setting-row">
-        <div class="setting-label">
-          <span class="label-text" data-i18n="lineHeight">Line Height</span>
-          <span class="label-value" id="line-height-value">1.5x</span>
+      <!-- Tab: Site Management -->
+      <div class="tab-content" data-content="sites" data-active="false">
+        <div class="setting-row">
+          <p class="subsection-title" data-i18n="presetSites">Preset Sites</p>
+          <div id="preset-sites" class="site-list"></div>
         </div>
-        <input
-          type="range"
-          id="line-height-scale"
-          min="1.0"
-          max="2.0"
-          step="0.1"
-          value="1.5"
-          class="slider"
-        >
-        <div class="slider-range">
-          <span>1.0x</span>
-          <span>2.0x</span>
+
+        <div class="setting-divider"></div>
+
+        <div class="setting-row">
+          <p class="subsection-title" data-i18n="customSites">Custom Sites</p>
+          <div class="add-site-row">
+            <input type="text" id="new-site" placeholder="example.com" class="site-input">
+            <button id="add-site-btn" class="btn-add" data-i18n="addSite">Add</button>
+          </div>
+          <div id="custom-sites" class="site-list"></div>
         </div>
+
       </div>
 
-      <hr class="divider">
-
-      <!-- Reading Mode -->
-      <div class="setting-row">
-        <span class="label-text" data-i18n="readingMode">Reading Mode</span>
-        <div class="mode-group">
-          <label class="mode-option">
-            <input type="radio" name="reading-mode" value="glideread">
-            <span class="mode-radio"></span>
-            <span class="mode-info">
-              <span class="mode-name" data-i18n="modeGlideread">GlideRead</span>
-              <span class="mode-desc" data-i18n="modeGlidereadDesc">Bold first letters + fade the rest. Guides your eyes with soft contrast.</span>
-            </span>
-          </label>
-          <label class="mode-option">
-            <input type="radio" name="reading-mode" value="bionic">
-            <span class="mode-radio"></span>
-            <span class="mode-info">
-              <span class="mode-name" data-i18n="modeBionic">Bionic Reading</span>
-              <span class="mode-desc" data-i18n="modeBionicDesc">Classic bold-first-letters style. Heavier weight, no opacity change.</span>
-            </span>
-          </label>
-          <label class="mode-option">
-            <input type="radio" name="reading-mode" value="enlarge">
-            <span class="mode-radio"></span>
-            <span class="mode-info">
-              <span class="mode-name" data-i18n="modeEnlarge">Enlarge Only</span>
-              <span class="mode-desc" data-i18n="modeEnlargeDesc">Only scale up font size and line height. Clean and distraction-free.</span>
-            </span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Bionic Intensity -->
-      <div class="setting-row">
-        <span class="label-text label-sub" data-i18n="intensity">Intensity</span>
-        <div class="radio-group">
-          <label class="radio-label">
-            <input type="radio" name="intensity" value="light">
-            <span class="radio-custom"></span>
-            <span class="radio-text" data-i18n="light">Light</span>
-          </label>
-          <label class="radio-label">
-            <input type="radio" name="intensity" value="medium" checked>
-            <span class="radio-custom"></span>
-            <span class="radio-text" data-i18n="medium">Medium</span>
-          </label>
-          <label class="radio-label">
-            <input type="radio" name="intensity" value="heavy">
-            <span class="radio-custom"></span>
-            <span class="radio-text" data-i18n="heavy">Heavy</span>
-          </label>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section 2: Site Management -->
-    <section class="card">
-      <h2 class="section-title" data-i18n="siteManagement">Site Management</h2>
-
-      <h3 class="subsection-title" data-i18n="presetSites">Preset Sites</h3>
-      <div id="preset-sites" class="site-list"></div>
-
-      <hr class="divider">
-
-      <h3 class="subsection-title" data-i18n="customSites">Custom Sites</h3>
-      <div class="add-site-row">
-        <input
-          type="text"
-          id="new-site"
-          placeholder="example.com"
-          class="site-input"
-        >
-        <button id="add-site-btn" class="btn-add" data-i18n="addSite">Add Site</button>
-      </div>
-      <div id="custom-sites" class="site-list"></div>
-    </section>
-
-    <!-- Section 3: About -->
-    <section class="card">
-      <h2 class="section-title" data-i18n="about">About</h2>
-      <div class="about-content">
-        <p class="about-version">GlideRead <strong>v1.2.0</strong></p>
-        <p class="about-description" data-i18n="description">
-          Enhance readability on English websites with smart font scaling and
-          Bionic Reading. GlideRead automatically adjusts text on your favorite
-          sites so you can read faster and more comfortably.
-        </p>
-        <p class="about-author">
+      <!-- About (always visible, inside panel) -->
+      <div class="setting-divider"></div>
+      <div class="about-row">
+        <span class="about-text">
           <span data-i18n="madeBy">Made by</span> <a href="https://github.com/psylch" target="_blank" rel="noopener noreferrer">psylch</a>
-        </p>
-        <p class="about-link">
-          <a href="https://github.com/psylch/GlideRead/issues" target="_blank" rel="noopener noreferrer" data-i18n="sendFeedback">
-            Send Feedback
-          </a>
-          &nbsp;&middot;&nbsp;
-          <a href="https://github.com/psylch/GlideRead" target="_blank" rel="noopener noreferrer">
-            GitHub
-          </a>
-        </p>
+        </span>
+        <span class="about-links">
+          <a href="https://github.com/psylch/GlideRead/issues" target="_blank" rel="noopener noreferrer" data-i18n="sendFeedback">Feedback</a>
+          <span class="about-dot">&middot;</span>
+          <a href="https://github.com/psylch/GlideRead" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </span>
       </div>
-    </section>
+    </div>
   </div>
 
   <script src="../utils/sites.js"></script>

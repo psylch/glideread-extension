@@ -5,12 +5,139 @@ async function loadSettings() {
 
 const langToggle = document.getElementById('lang-toggle');
 
+// ---- Sliding Indicator Helpers ----
+
+function positionIndicator(container) {
+  const indicator = container.querySelector('.segmented-indicator, .tabs-indicator');
+  const activeBtn = container.querySelector('[data-active="true"]');
+  if (!indicator || !activeBtn) return;
+  const containerRect = container.getBoundingClientRect();
+  const btnRect = activeBtn.getBoundingClientRect();
+  const pad = container.classList.contains('tabs') ? 4 : 3;
+  indicator.style.width = btnRect.width + 'px';
+  indicator.style.transform = `translateX(${btnRect.left - containerRect.left - pad}px)`;
+}
+
+function activateButton(container, value) {
+  container.querySelectorAll('.segmented-btn, .tab-btn').forEach((btn) => {
+    btn.setAttribute('data-active', btn.dataset.value === value || btn.dataset.tab === value ? 'true' : 'false');
+  });
+  positionIndicator(container);
+}
+
+// ---- Tab Switching ----
+
+const tabsContainer = document.getElementById('tabs');
+const tabContents = document.querySelectorAll('.tab-content');
+
+tabsContainer.addEventListener('click', (e) => {
+  const btn = e.target.closest('.tab-btn');
+  if (!btn) return;
+  const tab = btn.dataset.tab;
+  activateButton(tabsContainer, tab);
+  tabContents.forEach((content) => {
+    content.setAttribute('data-active', content.dataset.content === tab ? 'true' : 'false');
+  });
+});
+
+// ---- Theme Switcher (Segmented) ----
+
+const themePicker = document.getElementById('theme-picker');
+
+function applyTheme(theme) {
+  const root = document.documentElement;
+  if (theme === 'system') {
+    root.removeAttribute('data-theme');
+  } else {
+    root.setAttribute('data-theme', theme);
+  }
+}
+
+themePicker.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.segmented-btn');
+  if (!btn) return;
+  const theme = btn.dataset.value;
+  activateButton(themePicker, theme);
+  applyTheme(theme);
+  await chrome.storage.sync.set({ theme });
+});
+
+// Apply theme immediately to avoid flash
+chrome.storage.sync.get({ theme: 'system' }, (result) => {
+  applyTheme(result.theme);
+  activateButton(themePicker, result.theme);
+});
+
+// ---- Reading Mode (Segmented) ----
+
+const modePicker = document.getElementById('mode-picker');
+const modeDesc = document.getElementById('mode-desc');
+
+const MODE_DESC_KEYS = {
+  glideread: 'modeGlidereadDesc',
+  bionic: 'modeBionicDesc',
+  enlarge: 'modeEnlargeDesc',
+};
+
+function updateModeDesc(mode) {
+  modeDesc.textContent = t(MODE_DESC_KEYS[mode] || MODE_DESC_KEYS.glideread);
+  // Also update the data-i18n attribute so applyI18n() can refresh it on lang switch
+  modeDesc.setAttribute('data-i18n', MODE_DESC_KEYS[mode] || MODE_DESC_KEYS.glideread);
+}
+
+modePicker.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.segmented-btn');
+  if (!btn) return;
+  const mode = btn.dataset.value;
+  activateButton(modePicker, mode);
+  updateModeDesc(mode);
+  await chrome.storage.sync.set({ readingMode: mode });
+});
+
+// ---- Intensity (Segmented) ----
+
+const intensityPicker = document.getElementById('intensity-picker');
+
+intensityPicker.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.segmented-btn');
+  if (!btn) return;
+  const intensity = btn.dataset.value;
+  activateButton(intensityPicker, intensity);
+  await chrome.storage.sync.set({ bionicIntensity: intensity });
+});
+
+// ---- Advanced Section ----
+
+const advancedSection = document.getElementById('advanced-section');
+const advancedTrigger = document.getElementById('advanced-trigger');
+
+advancedTrigger.addEventListener('click', () => {
+  const expanded = advancedSection.getAttribute('data-expanded') === 'true';
+  advancedSection.setAttribute('data-expanded', expanded ? 'false' : 'true');
+});
+
+// ---- Init ----
+
 async function init() {
   const locale = await initLocale();
   updateLangButton(locale);
   applyI18n();
 
   const settings = await loadSettings();
+
+  // Theme
+  const theme = settings.theme || 'system';
+  applyTheme(theme);
+  activateButton(themePicker, theme);
+
+  // Reading mode
+  const readingMode = settings.readingMode || 'glideread';
+  activateButton(modePicker, readingMode);
+  updateModeDesc(readingMode);
+
+  // Intensity
+  const intensity = settings.bionicIntensity || 'medium';
+  activateButton(intensityPicker, intensity);
 
   // Font scale slider
   const fontSlider = document.getElementById('font-scale');
@@ -30,35 +157,19 @@ async function init() {
     chrome.storage.sync.set({ lineHeightScale: parseFloat(e.target.value) });
   });
 
-  // Reading mode radios
-  const readingMode = settings.readingMode || 'enlarge';
-  document.querySelector(`input[name="reading-mode"][value="${readingMode}"]`).checked = true;
-  document.querySelectorAll('input[name="reading-mode"]').forEach((radio) => {
-    radio.addEventListener('change', (e) => {
-      chrome.storage.sync.set({ readingMode: e.target.value });
-    });
-  });
-
-  // Bionic intensity radios
-  const intensity = settings.bionicIntensity || 'medium';
-  document.querySelector(`input[name="intensity"][value="${intensity}"]`).checked = true;
-  document.querySelectorAll('input[name="intensity"]').forEach((radio) => {
-    radio.addEventListener('change', (e) => {
-      chrome.storage.sync.set({ bionicIntensity: e.target.value });
-    });
-  });
-
+  // Sites
   renderPresetSites(settings.presetSites || {});
   renderCustomSites(settings.customSites || []);
   document.getElementById('add-site-btn').addEventListener('click', addCustomSite);
-
-  // Allow pressing Enter to add a site
   document.getElementById('new-site').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      addCustomSite();
-    }
+    if (e.key === 'Enter') addCustomSite();
   });
+
+  // Position all indicators after layout settles
+  repositionAllIndicators();
 }
+
+// ---- Site Rendering ----
 
 function renderPresetSites(presetSites) {
   const container = document.getElementById('preset-sites');
@@ -163,19 +274,38 @@ async function addCustomSite() {
   input.value = '';
 }
 
+// ---- Language Toggle ----
+
 langToggle.addEventListener('click', async () => {
   const newLocale = getLocale() === 'en' ? 'zh' : 'en';
   await setLocale(newLocale);
   updateLangButton(newLocale);
   applyI18n();
+  // Update mode description for current reading mode
+  const activeMode = modePicker.querySelector('[data-active="true"]');
+  if (activeMode) updateModeDesc(activeMode.dataset.value);
   // Re-render site lists to update dynamic strings
   const settings = await loadSettings();
   renderPresetSites(settings.presetSites || {});
   renderCustomSites(settings.customSites || []);
+  // Reposition indicators since text widths changed
+  repositionAllIndicators();
 });
 
 function updateLangButton(locale) {
   langToggle.textContent = locale === 'en' ? '中' : 'EN';
 }
+
+// Reposition all indicators (after resize, lang switch, etc.)
+function repositionAllIndicators() {
+  requestAnimationFrame(() => {
+    positionIndicator(tabsContainer);
+    positionIndicator(themePicker);
+    positionIndicator(modePicker);
+    positionIndicator(intensityPicker);
+  });
+}
+
+window.addEventListener('resize', repositionAllIndicators);
 
 init();
