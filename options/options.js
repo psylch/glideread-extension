@@ -207,6 +207,16 @@ function renderPresetSites(presetSites) {
     row.appendChild(label);
 
     checkbox.addEventListener('change', async (e) => {
+      if (e.target.checked) {
+        // Request permission on user gesture
+        const granted = await requestSitePermission(site);
+        if (!granted) {
+          e.target.checked = false;
+          return;
+        }
+      } else {
+        await removeSitePermission(site);
+      }
       const settings = await loadSettings();
       settings.presetSites[site] = e.target.checked;
       chrome.storage.sync.set({ presetSites: settings.presetSites });
@@ -244,6 +254,7 @@ function renderCustomSites(customSites) {
     row.appendChild(removeBtn);
 
     removeBtn.addEventListener('click', async () => {
+      await removeSitePermission(site);
       const settings = await loadSettings();
       settings.customSites.splice(index, 1);
       chrome.storage.sync.set({ customSites: settings.customSites });
@@ -267,6 +278,8 @@ async function addCustomSite() {
   }
 
   if (!settings.customSites.includes(domain)) {
+    const granted = await requestSitePermission(domain);
+    if (!granted) return;
     settings.customSites.push(domain);
     chrome.storage.sync.set({ customSites: settings.customSites });
     renderCustomSites(settings.customSites);

@@ -2,17 +2,17 @@
 if (typeof DEFAULT_PRESET_SITES === 'undefined') {
 
 var DEFAULT_PRESET_SITES = {
-  'twitter.com': true,
-  'x.com': true,
-  'reddit.com': true,
-  'news.ycombinator.com': true,
-  'medium.com': true,
-  'dev.to': true,
-  'techcrunch.com': true,
-  'arstechnica.com': true,
-  'theverge.com': true,
-  'hackernoon.com': true,
-  'substack.com': true,
+  'twitter.com': false,
+  'x.com': false,
+  'reddit.com': false,
+  'news.ycombinator.com': false,
+  'medium.com': false,
+  'dev.to': false,
+  'techcrunch.com': false,
+  'arstechnica.com': false,
+  'theverge.com': false,
+  'hackernoon.com': false,
+  'substack.com': false,
 };
 
 var DEFAULT_SETTINGS = {
@@ -74,5 +74,38 @@ async function getSettings() {
 async function saveSettings(settings) {
   return new Promise((resolve) => {
     chrome.storage.sync.set(settings, resolve);
+  });
+}
+
+/**
+ * Convert a domain string to a Chrome permission origin pattern.
+ * e.g. "reddit.com" → "*://*.reddit.com/*"
+ */
+function domainToOrigin(domain) {
+  return `*://*.${domain}/*`;
+}
+
+/**
+ * Request host permission for a domain. Must be called from a user gesture.
+ * Returns true if granted, false if denied.
+ */
+async function requestSitePermission(domain) {
+  return new Promise((resolve) => {
+    chrome.permissions.request(
+      { origins: [domainToOrigin(domain)] },
+      (granted) => resolve(granted)
+    );
+  });
+}
+
+/**
+ * Remove host permission for a domain.
+ */
+async function removeSitePermission(domain) {
+  return new Promise((resolve) => {
+    chrome.permissions.remove(
+      { origins: [domainToOrigin(domain)] },
+      (removed) => resolve(removed)
+    );
   });
 }

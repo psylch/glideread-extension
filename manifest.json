@@ -14,20 +14,6 @@
       "description": "__MSG_commandActivate__"
     }
   },
-  "host_permissions": [
-    "*://*.twitter.com/*",
-    "*://*.x.com/*",
-    "*://*.reddit.com/*",
-    "*://news.ycombinator.com/*",
-    "*://*.medium.com/*",
-    "*://*.dev.to/*",
-    "*://*.techcrunch.com/*",
-    "*://*.arstechnica.com/*",
-    "*://*.theverge.com/*",
-    "*://*.hackernoon.com/*",
-    "*://*.substack.com/*",
-    "*://*.discord.com/*"
-  ],
   "optional_host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
