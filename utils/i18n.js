@@ -43,6 +43,10 @@ const TRANSLATIONS = {
     themeLight: 'Light',
     themeDark: 'Dark',
     advancedSettings: 'Advanced Settings',
+    resetDefaults: 'Reset to Defaults',
+    previewLabel: 'Preview',
+    previewOriginal: 'Show Original',
+    previewProcessed: 'Show Effect',
   },
   zh: {
     appName: 'GlideRead',
@@ -88,6 +92,10 @@ const TRANSLATIONS = {
     themeLight: '浅色',
     themeDark: '深色',
     advancedSettings: '高级设置',
+    resetDefaults: '恢复默认',
+    previewLabel: '预览',
+    previewOriginal: '显示原文',
+    previewProcessed: '显示效果',
   },
 };
 

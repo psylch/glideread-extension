@@ -91,6 +91,7 @@ modePicker.addEventListener('click', async (e) => {
   const mode = btn.dataset.value;
   activateButton(modePicker, mode);
   updateModeDesc(mode);
+  updatePreview();
   await chrome.storage.sync.set({ readingMode: mode });
 });
 
@@ -103,6 +104,7 @@ intensityPicker.addEventListener('click', async (e) => {
   if (!btn) return;
   const intensity = btn.dataset.value;
   activateButton(intensityPicker, intensity);
+  updatePreview();
   await chrome.storage.sync.set({ bionicIntensity: intensity });
 });
 
@@ -114,6 +116,74 @@ const advancedTrigger = document.getElementById('advanced-trigger');
 advancedTrigger.addEventListener('click', () => {
   const expanded = advancedSection.getAttribute('data-expanded') === 'true';
   advancedSection.setAttribute('data-expanded', expanded ? 'false' : 'true');
+});
+
+// ---- Reset to Defaults ----
+
+document.getElementById('reset-defaults').addEventListener('click', async () => {
+  const defaults = {
+    readingMode: 'glideread',
+    fontScale: 1.15,
+    lineHeightScale: 1.5,
+    bionicIntensity: 'medium',
+  };
+  await chrome.storage.sync.set(defaults);
+
+  // Update UI
+  activateButton(modePicker, defaults.readingMode);
+  updateModeDesc(defaults.readingMode);
+  activateButton(intensityPicker, defaults.bionicIntensity);
+
+  const fontSlider = document.getElementById('font-scale');
+  fontSlider.value = defaults.fontScale;
+  document.getElementById('font-scale-value').textContent = defaults.fontScale + 'x';
+
+  const lineSlider = document.getElementById('line-height-scale');
+  lineSlider.value = defaults.lineHeightScale;
+  document.getElementById('line-height-value').textContent = defaults.lineHeightScale + 'x';
+
+  updatePreview();
+  repositionAllIndicators();
+});
+
+// ---- Preview ----
+
+const PREVIEW_TEXT = 'Digital screens present unique challenges for our eyes. Unlike printed text, pixels emit light directly, which can cause fatigue over extended reading sessions. Research suggests that subtle typographic adjustments — like emphasizing word beginnings — can significantly reduce cognitive load and improve reading speed.';
+
+const previewCard = document.getElementById('preview-card');
+const previewBody = document.getElementById('preview-body');
+const previewToggle = document.getElementById('preview-toggle');
+let showingOriginal = false;
+
+function updatePreview() {
+  const fontScale = parseFloat(document.getElementById('font-scale').value) || 1.15;
+  const lineHeightScale = parseFloat(document.getElementById('line-height-scale').value) || 1.5;
+
+  previewCard.style.setProperty('--preview-font-scale', fontScale);
+  previewCard.style.setProperty('--preview-line-height-scale', lineHeightScale);
+
+  if (showingOriginal) {
+    previewBody.textContent = PREVIEW_TEXT;
+    return;
+  }
+
+  const activeMode = modePicker.querySelector('[data-active="true"]');
+  const activeIntensity = intensityPicker.querySelector('[data-active="true"]');
+  const mode = activeMode ? activeMode.dataset.value : 'glideread';
+  const intensity = activeIntensity ? activeIntensity.dataset.value : 'medium';
+
+  if (mode === 'enlarge') {
+    previewBody.textContent = PREVIEW_TEXT;
+  } else {
+    previewBody.innerHTML = bionicify(PREVIEW_TEXT, intensity, mode);
+  }
+}
+
+previewToggle.addEventListener('click', () => {
+  showingOriginal = !showingOriginal;
+  previewToggle.setAttribute('data-active', showingOriginal ? 'true' : 'false');
+  previewToggle.textContent = showingOriginal ? t('previewProcessed') : t('previewOriginal');
+  updatePreview();
 });
 
 // ---- Init ----
@@ -145,6 +215,7 @@ async function init() {
   document.getElementById('font-scale-value').textContent = fontSlider.value + 'x';
   fontSlider.addEventListener('input', (e) => {
     document.getElementById('font-scale-value').textContent = e.target.value + 'x';
+    updatePreview();
     chrome.storage.sync.set({ fontScale: parseFloat(e.target.value) });
   });
 
@@ -154,6 +225,7 @@ async function init() {
   document.getElementById('line-height-value').textContent = lineSlider.value + 'x';
   lineSlider.addEventListener('input', (e) => {
     document.getElementById('line-height-value').textContent = e.target.value + 'x';
+    updatePreview();
     chrome.storage.sync.set({ lineHeightScale: parseFloat(e.target.value) });
   });
 
@@ -164,6 +236,9 @@ async function init() {
   document.getElementById('new-site').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') addCustomSite();
   });
+
+  // Initial preview
+  updatePreview();
 
   // Position all indicators after layout settles
   repositionAllIndicators();

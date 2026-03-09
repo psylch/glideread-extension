@@ -59,7 +59,17 @@ function bionicify(text, intensity = 'medium', mode = 'glideread') {
         if (mode === 'bionic') {
           return `<span class="glideread-bb">${escapeHtml(boldPart)}</span>${escapeHtml(rest)}`;
         }
-        return `<span class="glideread-b">${escapeHtml(boldPart)}</span><span class="glideread-r">${escapeHtml(rest)}</span>`;
+        // GlideRead mode: per-letter gradient opacity (0.82 → 0.35)
+        if (rest.length === 0) {
+          return `<span class="glideread-b">${escapeHtml(boldPart)}</span>`;
+        }
+        let glide = `<span class="glideread-b">${escapeHtml(boldPart)}</span>`;
+        for (let i = 0; i < rest.length; i++) {
+          const t = rest.length === 1 ? 1 : i / (rest.length - 1);
+          const opacity = (0.82 - t * (0.82 - 0.35)).toFixed(2);
+          glide += `<span class="glideread-r" style="opacity:${opacity}">${escapeHtml(rest[i])}</span>`;
+        }
+        return glide;
       }
       return escapeHtml(token);
     })

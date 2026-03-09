@@ -66,6 +66,25 @@
           </div>
         </div>
 
+        <!-- Preview Card -->
+        <div class="preview-card" id="preview-card">
+          <div class="preview-header">
+            <span class="preview-label" data-i18n="previewLabel">Preview</span>
+            <button class="preview-toggle" id="preview-toggle" data-i18n="previewOriginal">Show Original</button>
+          </div>
+          <div class="preview-article">
+            <div class="preview-meta">
+              <div class="preview-avatar"></div>
+              <div class="preview-meta-text">
+                <span class="preview-author">Sarah Chen</span>
+                <span class="preview-date">Mar 8, 2026 · 6 min read</span>
+              </div>
+            </div>
+            <h2 class="preview-title">Why Reading on Screens Feels Different</h2>
+            <p class="preview-body" id="preview-body"></p>
+          </div>
+        </div>
+
         <div class="setting-divider"></div>
 
         <!-- Advanced Settings (collapsible) -->
@@ -107,6 +126,11 @@
                 <button class="segmented-btn" data-value="heavy" data-i18n="heavy">Heavy</button>
               </div>
             </div>
+
+            <!-- Reset -->
+            <div class="setting-row reset-row">
+              <button id="reset-defaults" class="btn-reset" data-i18n="resetDefaults">Reset to Defaults</button>
+            </div>
           </div>
         </div>
       </div>
@@ -135,7 +159,7 @@
       <div class="setting-divider"></div>
       <div class="about-row">
         <span class="about-text">
-          <span class="version-badge">v1.2.2</span>
+          <span class="version-badge">v1.2.3</span>
           <span class="about-dot">&middot;</span>
           <span data-i18n="madeBy">Made by</span> <a href="https://github.com/psylch" target="_blank" rel="noopener noreferrer">psylch</a>
         </span>
@@ -149,6 +173,7 @@
   </div>
 
   <script src="../utils/sites.js"></script>
+  <script src="../utils/bionic.js"></script>
   <script src="../utils/i18n.js"></script>
   <script src="options.js"></script>
 </body>
