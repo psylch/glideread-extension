@@ -1,4 +1,8 @@
 // Guard against re-injection in content script context
+if (typeof browserAPI === 'undefined') {
+  var browserAPI = (typeof browser !== 'undefined' && browser.runtime) ? browser : chrome;
+}
+
 if (typeof DEFAULT_PRESET_SITES === 'undefined') {
 
 var DEFAULT_PRESET_SITES = {
@@ -65,7 +69,7 @@ async function shouldActivate(hostname) {
 
 async function getSettings() {
   return new Promise((resolve) => {
-    chrome.storage.sync.get(DEFAULT_SETTINGS, (result) => {
+    browserAPI.storage.sync.get(DEFAULT_SETTINGS, (result) => {
       resolve(result);
     });
   });
@@ -73,7 +77,7 @@ async function getSettings() {
 
 async function saveSettings(settings) {
   return new Promise((resolve) => {
-    chrome.storage.sync.set(settings, resolve);
+    browserAPI.storage.sync.set(settings, resolve);
   });
 }
 
@@ -90,8 +94,11 @@ function domainToOrigin(domain) {
  * Returns true if granted, false if denied.
  */
 async function requestSitePermission(domain) {
+  // Safari on iOS has limited permissions API support;
+  // gracefully resolve true if the API is unavailable.
+  if (!browserAPI.permissions?.request) return true;
   return new Promise((resolve) => {
-    chrome.permissions.request(
+    browserAPI.permissions.request(
       { origins: [domainToOrigin(domain)] },
       (granted) => resolve(granted)
     );
@@ -102,8 +109,9 @@ async function requestSitePermission(domain) {
  * Remove host permission for a domain.
  */
 async function removeSitePermission(domain) {
+  if (!browserAPI.permissions?.remove) return true;
   return new Promise((resolve) => {
-    chrome.permissions.remove(
+    browserAPI.permissions.remove(
       { origins: [domainToOrigin(domain)] },
       (removed) => resolve(removed)
     );

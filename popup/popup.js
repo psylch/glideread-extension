@@ -6,14 +6,14 @@ const settingsLink = document.getElementById('settings-link');
 const langToggle = document.getElementById('lang-toggle');
 
 // Apply stored theme preference (shared with options page)
-chrome.storage.sync.get({ theme: 'system' }, (result) => {
+browserAPI.storage.sync.get({ theme: 'system' }, (result) => {
   if (result.theme !== 'system') {
     document.documentElement.setAttribute('data-theme', result.theme);
   }
 });
 
 async function getCurrentHostname() {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
   if (!tab?.url) return null;
   try {
     return new URL(tab.url).hostname;
@@ -38,7 +38,7 @@ async function init() {
   applyI18n();
 
   const hostname = await getCurrentHostname();
-  const response = await chrome.runtime.sendMessage({
+  const response = await browserAPI.runtime.sendMessage({
     action: 'getStatus',
     hostname,
   });
@@ -55,7 +55,7 @@ toggle.addEventListener('change', async () => {
   statusDot.classList.toggle('active', active);
   const hostname = await getCurrentHostname();
   if (active) {
-    await chrome.runtime.sendMessage({ action: 'forceInject' });
+    await browserAPI.runtime.sendMessage({ action: 'forceInject' });
     if (hostname) {
       siteStatus.textContent = `${t('activeOn')} ${hostname}`;
       siteStatus.classList.add('active');
@@ -67,7 +67,7 @@ toggle.addEventListener('change', async () => {
 });
 
 settingsLink.addEventListener('click', () => {
-  chrome.runtime.openOptionsPage();
+  browserAPI.runtime.openOptionsPage();
 });
 
 langToggle.addEventListener('click', async () => {
@@ -78,7 +78,7 @@ langToggle.addEventListener('click', async () => {
   statusText.textContent = toggle.checked ? t('on') : t('off');
   const hostname = await getCurrentHostname();
   if (hostname) {
-    const response = await chrome.runtime.sendMessage({ action: 'getStatus', hostname });
+    const response = await browserAPI.runtime.sendMessage({ action: 'getStatus', hostname });
     updateSiteStatus(response);
   }
 });

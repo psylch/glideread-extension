@@ -1,5 +1,5 @@
-// Import site matching logic
-importScripts('utils/sites.js');
+// Import polyfill and site matching logic
+importScripts('utils/browser-polyfill.js', 'utils/sites.js');
 
 async function injectIfNeeded(tabId, url) {
   try {
@@ -7,12 +7,12 @@ async function injectIfNeeded(tabId, url) {
     const active = await shouldActivate(hostname);
     if (!active) return;
 
-    await chrome.scripting.executeScript({
+    await browserAPI.scripting.executeScript({
       target: { tabId },
-      files: ['utils/sites.js', 'utils/dom.js', 'utils/bionic.js', 'content.js'],
+      files: ['utils/browser-polyfill.js', 'utils/sites.js', 'utils/dom.js', 'utils/bionic.js', 'content.js'],
     });
 
-    await chrome.scripting.insertCSS({
+    await browserAPI.scripting.insertCSS({
       target: { tabId },
       files: ['content.css'],
     });
@@ -21,13 +21,13 @@ async function injectIfNeeded(tabId, url) {
   }
 }
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+browserAPI.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && tab.url) {
     injectIfNeeded(tabId, tab.url);
   }
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'toggle') {
     handleToggle(message).then(sendResponse);
     return true;
@@ -37,7 +37,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
   if (message.action === 'forceInject') {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    browserAPI.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]) forceInject(tabs[0].id, tabs[0].url);
     });
     sendResponse({ ok: true });
@@ -58,9 +58,9 @@ async function handleGetStatus({ hostname }) {
   // If not in site list, probe the tab to see if already injected
   if (!siteActive) {
     try {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
       if (tab) {
-        const results = await chrome.scripting.executeScript({
+        const results = await browserAPI.scripting.executeScript({
           target: { tabId: tab.id },
           func: () => !!window.__glidereadInitialized,
         });
@@ -69,7 +69,7 @@ async function handleGetStatus({ hostname }) {
         }
       }
     } catch {
-      // Tab not scriptable (e.g. chrome:// pages)
+      // Tab not scriptable (e.g. chrome://, safari-web-extension:// pages)
     }
   }
 
@@ -81,21 +81,26 @@ async function handleGetStatus({ hostname }) {
 }
 
 // Keyboard shortcut: force-inject on any page (activeTab grants permission)
-chrome.commands.onCommand.addListener(async (command) => {
-  if (command === 'activate-glideread') {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.url || tab.url.startsWith('chrome://')) return;
-    forceInject(tab.id, tab.url);
-  }
-});
+// Note: commands API may not be available on iOS Safari — guarded with optional chaining
+if (browserAPI.commands?.onCommand) {
+  browserAPI.commands.onCommand.addListener(async (command) => {
+    if (command === 'activate-glideread') {
+      const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.url) return;
+      // Skip browser-internal pages
+      if (tab.url.startsWith('chrome://') || tab.url.startsWith('safari-web-extension://') || tab.url.startsWith('about:')) return;
+      forceInject(tab.id, tab.url);
+    }
+  });
+}
 
 async function forceInject(tabId, url) {
   try {
-    await chrome.scripting.executeScript({
+    await browserAPI.scripting.executeScript({
       target: { tabId },
-      files: ['utils/sites.js', 'utils/dom.js', 'utils/bionic.js', 'content.js'],
+      files: ['utils/browser-polyfill.js', 'utils/sites.js', 'utils/dom.js', 'utils/bionic.js', 'content.js'],
     });
-    await chrome.scripting.insertCSS({
+    await browserAPI.scripting.insertCSS({
       target: { tabId },
       files: ['content.css'],
     });
@@ -104,7 +109,7 @@ async function forceInject(tabId, url) {
   }
 }
 
-chrome.runtime.onInstalled.addListener(async () => {
+browserAPI.runtime.onInstalled.addListener(async () => {
   const settings = await getSettings();
   await saveSettings(settings);
 });

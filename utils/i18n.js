@@ -102,19 +102,28 @@ const TRANSLATIONS = {
 let _currentLocale = 'en';
 
 function detectLocale() {
-  const lang = chrome.i18n.getUILanguage();
-  return lang.startsWith('zh') ? 'zh' : 'en';
+  try {
+    const lang = browserAPI.i18n.getUILanguage();
+    return lang.startsWith('zh') ? 'zh' : 'en';
+  } catch {
+    // Fallback if i18n API is unavailable (e.g. some Safari contexts)
+    return navigator.language?.startsWith('zh') ? 'zh' : 'en';
+  }
 }
 
 async function initLocale() {
-  const result = await chrome.storage.sync.get({ locale: null });
+  const result = await new Promise((resolve) => {
+    browserAPI.storage.sync.get({ locale: null }, resolve);
+  });
   _currentLocale = result.locale || detectLocale();
   return _currentLocale;
 }
 
 async function setLocale(locale) {
   _currentLocale = locale;
-  await chrome.storage.sync.set({ locale });
+  await new Promise((resolve) => {
+    browserAPI.storage.sync.set({ locale }, resolve);
+  });
 }
 
 function t(key) {

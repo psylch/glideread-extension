@@ -59,11 +59,11 @@ themePicker.addEventListener('click', async (e) => {
   const theme = btn.dataset.value;
   activateButton(themePicker, theme);
   applyTheme(theme);
-  await chrome.storage.sync.set({ theme });
+  await browserAPI.storage.sync.set({ theme });
 });
 
 // Apply theme immediately to avoid flash
-chrome.storage.sync.get({ theme: 'system' }, (result) => {
+browserAPI.storage.sync.get({ theme: 'system' }, (result) => {
   applyTheme(result.theme);
   activateButton(themePicker, result.theme);
 });
@@ -92,7 +92,7 @@ modePicker.addEventListener('click', async (e) => {
   activateButton(modePicker, mode);
   updateModeDesc(mode);
   updatePreview();
-  await chrome.storage.sync.set({ readingMode: mode });
+  await browserAPI.storage.sync.set({ readingMode: mode });
 });
 
 // ---- Intensity (Segmented) ----
@@ -105,7 +105,7 @@ intensityPicker.addEventListener('click', async (e) => {
   const intensity = btn.dataset.value;
   activateButton(intensityPicker, intensity);
   updatePreview();
-  await chrome.storage.sync.set({ bionicIntensity: intensity });
+  await browserAPI.storage.sync.set({ bionicIntensity: intensity });
 });
 
 // ---- Advanced Section ----
@@ -127,7 +127,7 @@ document.getElementById('reset-defaults').addEventListener('click', async () => 
     lineHeightScale: 1.5,
     bionicIntensity: 'medium',
   };
-  await chrome.storage.sync.set(defaults);
+  await browserAPI.storage.sync.set(defaults);
 
   // Update UI
   activateButton(modePicker, defaults.readingMode);
@@ -216,7 +216,7 @@ async function init() {
   fontSlider.addEventListener('input', (e) => {
     document.getElementById('font-scale-value').textContent = e.target.value + 'x';
     updatePreview();
-    chrome.storage.sync.set({ fontScale: parseFloat(e.target.value) });
+    browserAPI.storage.sync.set({ fontScale: parseFloat(e.target.value) });
   });
 
   // Line height slider
@@ -226,7 +226,7 @@ async function init() {
   lineSlider.addEventListener('input', (e) => {
     document.getElementById('line-height-value').textContent = e.target.value + 'x';
     updatePreview();
-    chrome.storage.sync.set({ lineHeightScale: parseFloat(e.target.value) });
+    browserAPI.storage.sync.set({ lineHeightScale: parseFloat(e.target.value) });
   });
 
   // Sites
@@ -294,7 +294,7 @@ function renderPresetSites(presetSites) {
       }
       const settings = await loadSettings();
       settings.presetSites[site] = e.target.checked;
-      chrome.storage.sync.set({ presetSites: settings.presetSites });
+      browserAPI.storage.sync.set({ presetSites: settings.presetSites });
     });
     container.appendChild(row);
   }
@@ -332,7 +332,7 @@ function renderCustomSites(customSites) {
       await removeSitePermission(site);
       const settings = await loadSettings();
       settings.customSites.splice(index, 1);
-      chrome.storage.sync.set({ customSites: settings.customSites });
+      browserAPI.storage.sync.set({ customSites: settings.customSites });
       renderCustomSites(settings.customSites);
     });
     container.appendChild(row);
@@ -356,7 +356,7 @@ async function addCustomSite() {
     const granted = await requestSitePermission(domain);
     if (!granted) return;
     settings.customSites.push(domain);
-    chrome.storage.sync.set({ customSites: settings.customSites });
+    browserAPI.storage.sync.set({ customSites: settings.customSites });
     renderCustomSites(settings.customSites);
   }
   input.value = '';
