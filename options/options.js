@@ -156,11 +156,8 @@ const previewToggle = document.getElementById('preview-toggle');
 let showingOriginal = false;
 
 function updatePreview() {
-  const fontScale = parseFloat(document.getElementById('font-scale').value) || 1.15;
-  const lineHeightScale = parseFloat(document.getElementById('line-height-scale').value) || 1.5;
-
-  previewCard.style.setProperty('--preview-font-scale', fontScale);
-  previewCard.style.setProperty('--preview-line-height-scale', lineHeightScale);
+  // Preview uses fixed realistic density (not user's fontScale/lineHeightScale)
+  // so users see GlideRead's effect at typical website text sizes.
 
   if (showingOriginal) {
     previewBody.textContent = PREVIEW_TEXT;
