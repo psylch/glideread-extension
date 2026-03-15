@@ -164,6 +164,8 @@ function updatePreview() {
   previewBody.style.setProperty('--preview-lh-scale', lineHeightScale);
 
   if (showingOriginal) {
+    previewBody.style.setProperty('--preview-font-scale', 1);
+    previewBody.style.setProperty('--preview-lh-scale', 1);
     previewBody.textContent = PREVIEW_TEXT;
     return;
   }
