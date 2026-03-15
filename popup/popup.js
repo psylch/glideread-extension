@@ -70,8 +70,11 @@ settingsLink.addEventListener('click', () => {
   chrome.runtime.openOptionsPage();
 });
 
+const LOCALE_CYCLE = ['en', 'zh', 'fr', 'es', 'de', 'pt', 'ja', 'ko'];
+
 langToggle.addEventListener('click', async () => {
-  const newLocale = getLocale() === 'en' ? 'zh' : 'en';
+  const currentIndex = LOCALE_CYCLE.indexOf(getLocale());
+  const newLocale = LOCALE_CYCLE[(currentIndex + 1) % LOCALE_CYCLE.length];
   await setLocale(newLocale);
   updateLangButton(newLocale);
   applyI18n();
@@ -83,8 +86,10 @@ langToggle.addEventListener('click', async () => {
   }
 });
 
+const LANG_BUTTON_LABELS = { en: '中', zh: 'FR', fr: 'ES', es: 'DE', de: 'PT', pt: '日', ja: '한', ko: 'EN' };
+
 function updateLangButton(locale) {
-  langToggle.textContent = locale === 'en' ? '中' : 'EN';
+  langToggle.textContent = LANG_BUTTON_LABELS[locale] || 'EN';
 }
 
 init();

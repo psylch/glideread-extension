@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "GlideRead",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "Mejora la legibilidad en sitios web con escalado inteligente de fuentes y lectura Bionic.",
+    "description": "Extension description"
+  },
+  "commandActivate": {
+    "message": "Activar GlideRead en la página actual",
+    "description": "Keyboard shortcut description"
+  }
+}

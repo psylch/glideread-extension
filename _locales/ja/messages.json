@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "GlideRead",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "スマートなフォント調整と Bionic Reading で、ウェブサイトの読みやすさを向上させます。",
+    "description": "Extension description"
+  },
+  "commandActivate": {
+    "message": "現在のページで GlideRead を有効にする",
+    "description": "Keyboard shortcut description"
+  }
+}

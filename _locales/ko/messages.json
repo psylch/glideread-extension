@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "GlideRead",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "스마트한 글꼴 조정과 Bionic Reading으로 웹사이트의 가독성을 향상시킵니다.",
+    "description": "Extension description"
+  },
+  "commandActivate": {
+    "message": "현재 페이지에서 GlideRead 활성화",
+    "description": "Keyboard shortcut description"
+  }
+}
