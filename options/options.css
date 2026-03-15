@@ -192,23 +192,33 @@ body {
   white-space: nowrap;
 }
 
-.lang-toggle {
-  all: unset;
-  cursor: pointer;
-  padding: 4px 10px;
+/* Language / generic select dropdown */
+.setting-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 6px 28px 6px 12px;
   border-radius: 8px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  background: var(--tab-bg);
-  border: 1px solid var(--tab-border);
-  transition: all 0.15s ease;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%239ca3af' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
 }
 
-.lang-toggle:hover {
-  color: var(--accent);
+.setting-select:focus {
+  outline: none;
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 3px var(--input-focus-shadow);
+}
+
+.setting-select:hover {
   border-color: var(--accent);
-  background: var(--accent-soft);
 }
 
 /* ===== Tabs Row ===== */

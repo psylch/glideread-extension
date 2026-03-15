@@ -3,8 +3,6 @@ async function loadSettings() {
   return getSettings();
 }
 
-const langToggle = document.getElementById('lang-toggle');
-
 // ---- Sliding Indicator Helpers ----
 
 function positionIndicator(container) {
@@ -189,11 +187,30 @@ previewToggle.addEventListener('click', () => {
   updatePreview();
 });
 
+// ---- Language Dropdown ----
+
+const langSelect = document.getElementById('lang-select');
+
+langSelect.addEventListener('change', async () => {
+  const newLocale = langSelect.value;
+  await setLocale(newLocale);
+  applyI18n();
+  // Update mode description for current reading mode
+  const activeMode = modePicker.querySelector('[data-active="true"]');
+  if (activeMode) updateModeDesc(activeMode.dataset.value);
+  // Re-render site lists to update dynamic strings
+  const settings = await loadSettings();
+  renderPresetSites(settings.presetSites || {});
+  renderCustomSites(settings.customSites || []);
+  // Reposition indicators since text widths changed
+  repositionAllIndicators();
+});
+
 // ---- Init ----
 
 async function init() {
   const locale = await initLocale();
-  updateLangButton(locale);
+  langSelect.value = locale;
   applyI18n();
 
   const settings = await loadSettings();
@@ -363,33 +380,6 @@ async function addCustomSite() {
     renderCustomSites(settings.customSites);
   }
   input.value = '';
-}
-
-// ---- Language Toggle ----
-
-const LOCALE_CYCLE = ['en', 'zh', 'ja', 'ko'];
-
-langToggle.addEventListener('click', async () => {
-  const currentIndex = LOCALE_CYCLE.indexOf(getLocale());
-  const newLocale = LOCALE_CYCLE[(currentIndex + 1) % LOCALE_CYCLE.length];
-  await setLocale(newLocale);
-  updateLangButton(newLocale);
-  applyI18n();
-  // Update mode description for current reading mode
-  const activeMode = modePicker.querySelector('[data-active="true"]');
-  if (activeMode) updateModeDesc(activeMode.dataset.value);
-  // Re-render site lists to update dynamic strings
-  const settings = await loadSettings();
-  renderPresetSites(settings.presetSites || {});
-  renderCustomSites(settings.customSites || []);
-  // Reposition indicators since text widths changed
-  repositionAllIndicators();
-});
-
-const LANG_BUTTON_LABELS = { en: '中', zh: '日', ja: '한', ko: 'EN' };
-
-function updateLangButton(locale) {
-  langToggle.textContent = LANG_BUTTON_LABELS[locale] || 'EN';
 }
 
 // Reposition all indicators (after resize, lang switch, etc.)

@@ -22,11 +22,8 @@
     <div class="tabs-row">
       <div class="tabs" id="tabs">
         <span class="tabs-indicator" id="tabs-indicator"></span>
-        <button class="tab-btn" data-tab="reading" data-active="true" data-i18n="tabReading">Reading Mode</button>
-        <button class="tab-btn" data-tab="sites" data-active="false" data-i18n="tabSites">Site Management</button>
-      </div>
-      <div class="tabs-row-actions">
-        <button id="lang-toggle" class="lang-toggle">中</button>
+        <button class="tab-btn" data-tab="reading" data-active="true" data-i18n="tabReading">Reading</button>
+        <button class="tab-btn" data-tab="general" data-active="false" data-i18n="tabGeneral">General</button>
       </div>
     </div>
 
@@ -35,22 +32,6 @@
 
       <!-- Tab: Reading Mode -->
       <div class="tab-content" data-content="reading" data-active="true">
-
-        <!-- Theme -->
-        <div class="setting-row setting-row-inline">
-          <div>
-            <p class="setting-title" data-i18n="themeTitle">Appearance</p>
-            <p class="setting-desc" data-i18n="themeDesc">Follow system or choose manually</p>
-          </div>
-          <div class="segmented" id="theme-picker" data-name="theme">
-            <span class="segmented-indicator"></span>
-            <button class="segmented-btn" data-value="system" data-i18n="themeSystem">System</button>
-            <button class="segmented-btn" data-value="light" data-i18n="themeLight">Light</button>
-            <button class="segmented-btn" data-value="dark" data-i18n="themeDark">Dark</button>
-          </div>
-        </div>
-
-        <div class="setting-divider"></div>
 
         <!-- Reading Mode -->
         <div class="setting-row setting-row-inline">
@@ -135,8 +116,41 @@
         </div>
       </div>
 
-      <!-- Tab: Site Management -->
-      <div class="tab-content" data-content="sites" data-active="false">
+      <!-- Tab: General -->
+      <div class="tab-content" data-content="general" data-active="false">
+
+        <!-- Language -->
+        <div class="setting-row setting-row-inline">
+          <div>
+            <p class="setting-title" data-i18n="language">Language</p>
+          </div>
+          <select id="lang-select" class="setting-select">
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+          </select>
+        </div>
+
+        <div class="setting-divider"></div>
+
+        <!-- Theme -->
+        <div class="setting-row setting-row-inline">
+          <div>
+            <p class="setting-title" data-i18n="themeTitle">Appearance</p>
+            <p class="setting-desc" data-i18n="themeDesc">Follow system or choose manually</p>
+          </div>
+          <div class="segmented" id="theme-picker" data-name="theme">
+            <span class="segmented-indicator"></span>
+            <button class="segmented-btn" data-value="system" data-i18n="themeSystem">System</button>
+            <button class="segmented-btn" data-value="light" data-i18n="themeLight">Light</button>
+            <button class="segmented-btn" data-value="dark" data-i18n="themeDark">Dark</button>
+          </div>
+        </div>
+
+        <div class="setting-divider"></div>
+
+        <!-- Preset Sites -->
         <div class="setting-row">
           <p class="subsection-title" data-i18n="presetSites">Preset Sites</p>
           <div id="preset-sites" class="site-list"></div>
@@ -144,6 +158,7 @@
 
         <div class="setting-divider"></div>
 
+        <!-- Custom Sites -->
         <div class="setting-row">
           <p class="subsection-title" data-i18n="customSites">Custom Sites</p>
           <div class="add-site-row">
@@ -159,7 +174,7 @@
       <div class="setting-divider"></div>
       <div class="about-row">
         <span class="about-text">
-          <span class="version-badge">v1.2.4</span>
+          <span class="version-badge">v1.2.5</span>
           <span class="about-dot">&middot;</span>
           <span data-i18n="madeBy">Made by</span> <a href="https://github.com/psylch" target="_blank" rel="noopener noreferrer">psylch</a>
         </span>

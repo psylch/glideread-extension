@@ -3,7 +3,6 @@ const statusText = document.getElementById('status-text');
 const statusDot = document.getElementById('status-dot');
 const siteStatus = document.getElementById('site-status');
 const settingsLink = document.getElementById('settings-link');
-const langToggle = document.getElementById('lang-toggle');
 
 // Apply stored theme preference (shared with options page)
 chrome.storage.sync.get({ theme: 'system' }, (result) => {
@@ -33,8 +32,7 @@ function updateSiteStatus(response) {
 }
 
 async function init() {
-  const locale = await initLocale();
-  updateLangButton(locale);
+  await initLocale();
   applyI18n();
 
   const hostname = await getCurrentHostname();
@@ -69,27 +67,5 @@ toggle.addEventListener('change', async () => {
 settingsLink.addEventListener('click', () => {
   chrome.runtime.openOptionsPage();
 });
-
-const LOCALE_CYCLE = ['en', 'zh', 'ja', 'ko'];
-
-langToggle.addEventListener('click', async () => {
-  const currentIndex = LOCALE_CYCLE.indexOf(getLocale());
-  const newLocale = LOCALE_CYCLE[(currentIndex + 1) % LOCALE_CYCLE.length];
-  await setLocale(newLocale);
-  updateLangButton(newLocale);
-  applyI18n();
-  statusText.textContent = toggle.checked ? t('on') : t('off');
-  const hostname = await getCurrentHostname();
-  if (hostname) {
-    const response = await chrome.runtime.sendMessage({ action: 'getStatus', hostname });
-    updateSiteStatus(response);
-  }
-});
-
-const LANG_BUTTON_LABELS = { en: '中', zh: '日', ja: '한', ko: 'EN' };
-
-function updateLangButton(locale) {
-  langToggle.textContent = LANG_BUTTON_LABELS[locale] || 'EN';
-}
 
 init();
