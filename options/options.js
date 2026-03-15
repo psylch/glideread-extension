@@ -36,6 +36,8 @@ tabsContainer.addEventListener('click', (e) => {
   tabContents.forEach((content) => {
     content.setAttribute('data-active', content.dataset.content === tab ? 'true' : 'false');
   });
+  // Reposition indicators after tab switch (elements may have been hidden)
+  repositionAllIndicators();
 });
 
 // ---- Theme Switcher (Segmented) ----
@@ -187,12 +189,15 @@ previewToggle.addEventListener('click', () => {
   updatePreview();
 });
 
-// ---- Language Dropdown ----
+// ---- Language Picker ----
 
-const langSelect = document.getElementById('lang-select');
+const langPicker = document.getElementById('lang-picker');
 
-langSelect.addEventListener('change', async () => {
-  const newLocale = langSelect.value;
+langPicker.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.segmented-btn');
+  if (!btn) return;
+  const newLocale = btn.dataset.value;
+  activateButton(langPicker, newLocale);
   await setLocale(newLocale);
   applyI18n();
   // Update mode description for current reading mode
@@ -210,7 +215,7 @@ langSelect.addEventListener('change', async () => {
 
 async function init() {
   const locale = await initLocale();
-  langSelect.value = locale;
+  activateButton(langPicker, locale);
   applyI18n();
 
   const settings = await loadSettings();
@@ -389,6 +394,7 @@ function repositionAllIndicators() {
     positionIndicator(themePicker);
     positionIndicator(modePicker);
     positionIndicator(intensityPicker);
+    positionIndicator(langPicker);
   });
 }
 
