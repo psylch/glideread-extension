@@ -367,7 +367,7 @@ async function addCustomSite() {
 
 // ---- Language Toggle ----
 
-const LOCALE_CYCLE = ['en', 'zh', 'fr', 'es', 'de', 'pt', 'ja', 'ko'];
+const LOCALE_CYCLE = ['en', 'zh', 'ja', 'ko'];
 
 langToggle.addEventListener('click', async () => {
   const currentIndex = LOCALE_CYCLE.indexOf(getLocale());
@@ -386,7 +386,7 @@ langToggle.addEventListener('click', async () => {
   repositionAllIndicators();
 });
 
-const LANG_BUTTON_LABELS = { en: '中', zh: 'FR', fr: 'ES', es: 'DE', de: 'PT', pt: '日', ja: '한', ko: 'EN' };
+const LANG_BUTTON_LABELS = { en: '中', zh: '日', ja: '한', ko: 'EN' };
 
 function updateLangButton(locale) {
   langToggle.textContent = LANG_BUTTON_LABELS[locale] || 'EN';
