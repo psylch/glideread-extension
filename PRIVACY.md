@@ -30,4 +30,4 @@ If this policy changes, the update will be published with a new version of the e
 ## Contact
 
 For questions about this policy, open an issue at:
-https://github.com/psylch/GlideRead/issues
+https://github.com/psylch/glideread-extension/issues
