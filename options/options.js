@@ -156,8 +156,12 @@ const previewToggle = document.getElementById('preview-toggle');
 let showingOriginal = false;
 
 function updatePreview() {
-  // Preview uses fixed realistic density (not user's fontScale/lineHeightScale)
-  // so users see GlideRead's effect at typical website text sizes.
+  // Preview base is realistic website density (15px / 1.5 line-height).
+  // Sliders scale relative to that base, so 1.0x = real site feel.
+  const fontScale = parseFloat(document.getElementById('font-scale').value) || 1.15;
+  const lineHeightScale = parseFloat(document.getElementById('line-height-scale').value) || 1.5;
+  previewBody.style.setProperty('--preview-font-scale', fontScale);
+  previewBody.style.setProperty('--preview-lh-scale', lineHeightScale);
 
   if (showingOriginal) {
     previewBody.textContent = PREVIEW_TEXT;

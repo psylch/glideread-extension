@@ -869,8 +869,12 @@ body {
 }
 
 .preview-body {
-  font-size: 15px;
-  line-height: 1.55;
+  --preview-base-font: 15px;
+  --preview-base-lh: 1.5;
+  --preview-font-scale: 1;
+  --preview-lh-scale: 1;
+  font-size: calc(var(--preview-base-font) * var(--preview-font-scale));
+  line-height: calc(var(--preview-base-lh) * var(--preview-lh-scale));
   color: var(--text);
   font-weight: 300;
   letter-spacing: 0.01em;
