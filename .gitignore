@@ -1,2 +1,4 @@
 .DS_Store
 store/
+scripts/cmudict-0.7b.txt
+scripts/word-freq.txt

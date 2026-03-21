@@ -9,7 +9,7 @@ async function injectIfNeeded(tabId, url) {
 
     await chrome.scripting.executeScript({
       target: { tabId },
-      files: ['utils/sites.js', 'utils/dom.js', 'utils/bionic.js', 'content.js'],
+      files: ['utils/sites.js', 'utils/dom.js', 'utils/bionic.js', 'utils/stress-data.js', 'utils/stress.js', 'content.js'],
     });
 
     await chrome.scripting.insertCSS({
@@ -93,7 +93,7 @@ async function forceInject(tabId, url) {
   try {
     await chrome.scripting.executeScript({
       target: { tabId },
-      files: ['utils/sites.js', 'utils/dom.js', 'utils/bionic.js', 'content.js'],
+      files: ['utils/sites.js', 'utils/dom.js', 'utils/bionic.js', 'utils/stress-data.js', 'utils/stress.js', 'content.js'],
     });
     await chrome.scripting.insertCSS({
       target: { tabId },

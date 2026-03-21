@@ -7,7 +7,8 @@
   const intensity = settings.bionicIntensity || 'medium';
   const fontScale = settings.fontScale || 1.15;
   const lineHeightScale = settings.lineHeightScale || 1.5;
-  const readingMode = settings.readingMode || 'enlarge';
+  const readingMode = settings.readingMode || 'off';
+  const stressEnabled = settings.stressEnabled || false;
   const targetSelector = TARGET_SELECTORS.join(', ');
 
   function processElement(el) {
@@ -22,7 +23,18 @@
       el.style.lineHeight = lineHeightScale;
     }
 
-    // Bionic reading
+    // Stress capitalization (applied first, before reading mode)
+    if (stressEnabled) {
+      const textNodes = getTextNodes(el);
+      textNodes.forEach((textNode) => {
+        const stressed = stressifyText(textNode.textContent);
+        if (stressed !== textNode.textContent) {
+          textNode.textContent = stressed;
+        }
+      });
+    }
+
+    // Reading mode (visual enhancement)
     if (readingMode === 'glideread' || readingMode === 'bionic') {
       const textNodes = getTextNodes(el);
       textNodes.forEach((textNode) => {

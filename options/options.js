@@ -76,7 +76,7 @@ const modeDesc = document.getElementById('mode-desc');
 const MODE_DESC_KEYS = {
   glideread: 'modeGlidereadDesc',
   bionic: 'modeBionicDesc',
-  enlarge: 'modeEnlargeDesc',
+  off: 'modeOffDesc',
 };
 
 function updateModeDesc(mode) {
@@ -93,6 +93,15 @@ modePicker.addEventListener('click', async (e) => {
   updateModeDesc(mode);
   updatePreview();
   await chrome.storage.sync.set({ readingMode: mode });
+});
+
+// ---- Stress Toggle ----
+
+const stressToggle = document.getElementById('stress-toggle');
+
+stressToggle.addEventListener('change', async () => {
+  await chrome.storage.sync.set({ stressEnabled: stressToggle.checked });
+  updatePreview();
 });
 
 // ---- Intensity (Segmented) ----
@@ -126,6 +135,7 @@ document.getElementById('reset-defaults').addEventListener('click', async () => 
     fontScale: 1.15,
     lineHeightScale: 1.5,
     bionicIntensity: 'medium',
+    stressEnabled: false,
   };
   await chrome.storage.sync.set(defaults);
 
@@ -133,6 +143,7 @@ document.getElementById('reset-defaults').addEventListener('click', async () => 
   activateButton(modePicker, defaults.readingMode);
   updateModeDesc(defaults.readingMode);
   activateButton(intensityPicker, defaults.bionicIntensity);
+  stressToggle.checked = false;
 
   const fontSlider = document.getElementById('font-scale');
   fontSlider.value = defaults.fontScale;
@@ -175,10 +186,13 @@ function updatePreview() {
   const mode = activeMode ? activeMode.dataset.value : 'glideread';
   const intensity = activeIntensity ? activeIntensity.dataset.value : 'medium';
 
-  if (mode === 'enlarge') {
-    previewBody.textContent = PREVIEW_TEXT;
+  // Apply stress first if enabled, then reading mode on top
+  const text = stressToggle.checked ? stressifyText(PREVIEW_TEXT) : PREVIEW_TEXT;
+
+  if (mode === 'off') {
+    previewBody.textContent = text;
   } else {
-    previewBody.innerHTML = bionicify(PREVIEW_TEXT, intensity, mode);
+    previewBody.innerHTML = bionicify(text, intensity, mode);
   }
 }
 
@@ -229,6 +243,9 @@ async function init() {
   const readingMode = settings.readingMode || 'glideread';
   activateButton(modePicker, readingMode);
   updateModeDesc(readingMode);
+
+  // Stress toggle
+  stressToggle.checked = settings.stressEnabled || false;
 
   // Intensity
   const intensity = settings.bionicIntensity || 'medium';

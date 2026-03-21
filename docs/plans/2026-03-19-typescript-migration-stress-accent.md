@@ -1,341 +1,574 @@
-# TypeScript 迁移 + 重音大写功能：需求与架构设计
+# Stress Capitalization (重音大写) Implementation Plan
 
-> 日期：2026-03-19
-> 状态：Draft
-> 版本：GlideRead v1.2.5 → v2.0.0
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-## 1. 背景
+**Goal:** Add a "Stress" reading mode that capitalizes the stressed syllable of English words (e.g. `computer` → `comPUter`), helping non-native readers perceive pronunciation rhythm.
 
-GlideRead 当前是纯 JavaScript Chrome 扩展（~1,200 行，8 个文件，零构建工具、零外部依赖）。
-计划新增**重音大写（Stress Capitalization）** 功能——将英语/西语单词的重读音节字母转为大写，
-辅助非母语读者感知单词发音节奏。该功能需要引入 CMU 发音词典数据（npm 包），
-因此必须加入构建工具链，顺势迁移 TypeScript 以获得类型安全。
+**Architecture:** Plain JS, zero build tools — consistent with the existing extension architecture. A one-time Node.js script pre-generates a compact stress lookup table from CMU Pronouncing Dictionary. The lookup table ships as a static JS file alongside existing utils. Content script gains a new `stress` mode branch parallel to `glideread`/`bionic`.
 
-## 2. 需求
+**Tech Stack:** Vanilla JS (extension runtime), Node.js (one-time data generation script only)
 
-### 2.1 功能需求：重音大写（Stress Capitalization）
+---
 
-**核心能力**
+## Background
 
-| 语言 | 输入 | 输出 | 数据来源 |
-|------|------|------|----------|
-| 英语 | `computer` | `comPUter` | CMU Pronouncing Dictionary 查表 |
-| 英语 | `beautiful` | `BEAUtiful` | CMU Pronouncing Dictionary 查表 |
-| 西语 | `español` | `espAÑol` | 拼写规则算法（确定性） |
-| 西语 | `corazón` | `coraZÓN` | 拼写规则算法（有 accent mark 直接定位） |
+The original design doc proposed bundling this with a TypeScript migration + esbuild toolchain. After review, we decided against it:
 
-**详细规则**
+- The extension is ~1,200 lines across 8 files with zero build step — this simplicity is a feature
+- Safari Web Extension shares code via git submodule + Xcode build-phase sed patching — a TS migration would break all of this
+- CMU dictionary data can be pre-generated once and committed as a static JS file — no runtime npm dependency needed
 
-- 英语：使用 CMU Pronouncing Dictionary（ARPAbet 音标体系），元音音素标记 `1` 为主重音、`2` 为次重音、`0` 为非重音。提取主重音（`1`）所在音节，将对应的原始字母大写。
-- 西语：
-  1. 有 written accent（á/é/í/ó/ú）→ 包含该字母的音节为重读音节
-  2. 无 accent，词尾为元音/n/s → 倒数第二音节重读（palabra llana）
-  3. 无 accent，词尾为其他辅音 → 最后一个音节重读（palabra aguda）
-- CJK 字符不处理（与现有 bionic reading 一致）
-- 未收录词（英语）保持原样不做转换
+## Data Strategy
 
-**用户交互**
+**CMU Pronouncing Dictionary** maps ~134K English words to ARPAbet phonemes. Vowel phonemes carry stress markers: `1` (primary), `2` (secondary), `0` (unstressed).
 
-- 新增阅读模式：`stress`（重音大写），与现有的 `glideread`、`bionic`、`enlarge` 并列
-- 在 Options 页面的 Reading Mode 选择器中加入该选项
-- Popup 中显示当前模式名称
+Example: `COMPUTER  K AH0 M P Y UW1 T ER0` → primary stress on `UW1` → syllable "pu" → `comPUter`
 
-### 2.2 技术需求：TypeScript 迁移
+**Pre-processing pipeline** (one-time script, NOT part of extension runtime):
 
-**目标**
+1. Read raw CMU dict data (downloadable text file, no npm package needed)
+2. Parse each entry: word → phoneme sequence
+3. Map phonemes back to letter positions using alignment heuristic
+4. Output: `{ "computer": [3, 5], "beautiful": [0, 4], ... }` where `[start, end]` = indices of stressed syllable letters
+5. Filter to top ~20K high-frequency words (intersection with a word frequency list) to keep file size reasonable (~250KB)
+6. Write as `var CMU_STRESS_MAP = { ... };` in a plain JS file
 
-- 所有 `.js` 源文件迁移为 `.ts`
-- 引入构建工具链，输出到 `dist/` 目录
-- Chrome 加载 `dist/` 而非项目根目录
-- 开发体验：`npm run dev`（watch 模式）、`npm run build`（生产构建）
+**Why not the full 134K?** Full dict → ~1.5MB JS file. Top 20K covers 95%+ of words encountered in typical web reading. Unrecognized words simply stay unchanged — graceful degradation.
 
-**约束**
+---
 
-- 保持 Manifest V3 兼容
-- 扩展功能与现有版本完全一致（向后兼容）
-- 构建产物体积尽量小
+### Task 1: Create the CMU data generation script
 
-## 3. 架构设计
+**Files:**
+- Create: `scripts/build-stress-data.mjs`
+- Create: `scripts/README.md` (brief usage note)
 
-### 3.1 当前架构
+**Step 1: Write the generation script**
 
-```
-Chrome 直接加载项目根目录
-├── background.js          (service worker)
-├── content.js             (动态注入)
-├── utils/sites.js         (动态注入)
-├── utils/dom.js           (动态注入)
-├── utils/bionic.js        (动态注入)
-├── utils/i18n.js          (options/popup 引用)
-├── popup/popup.js
-└── options/options.js
-```
+```js
+// scripts/build-stress-data.mjs
+//
+// One-time script to generate utils/stress-data.js from CMU Pronouncing Dictionary.
+// Usage: node scripts/build-stress-data.mjs
+//
+// Prerequisites:
+//   Download cmudict-0.7b from http://www.speech.cs.cmu.edu/cgi-bin/cmudict
+//   Place as scripts/cmudict-0.7b.txt
+//
+// Optional: place a word frequency list as scripts/word-freq.txt (one word per line)
+//   to filter output to high-frequency words only.
 
-脚本注入方式：`background.js` 通过 `chrome.scripting.executeScript` 按顺序注入
-`sites.js` → `dom.js` → `bionic.js` → `content.js`，各文件通过全局函数通信。
+import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-### 3.2 目标架构
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const DICT_PATH = join(__dirname, 'cmudict-0.7b.txt');
+const FREQ_PATH = join(__dirname, 'word-freq.txt');
+const OUTPUT_PATH = join(__dirname, '..', 'utils', 'stress-data.js');
 
-```
-项目根目录
-├── src/
-│   ├── background.ts          → dist/background.js
-│   ├── content.ts             → dist/content.js    (bundle: sites + dom + bionic + stress)
-│   ├── popup/
-│   │   └── popup.ts           → dist/popup/popup.js
-│   ├── options/
-│   │   └── options.ts         → dist/options/options.js
-│   ├── utils/
-│   │   ├── sites.ts
-│   │   ├── dom.ts
-│   │   ├── bionic.ts
-│   │   ├── i18n.ts
-│   │   └── stress.ts          ★ 新增：重音检测模块
-│   ├── data/
-│   │   └── cmu-stress-map.json ★ 精简版 CMU 词典（word → stress index）
-│   └── types/
-│       └── settings.ts        ★ 共享类型定义
-├── dist/                      ← Chrome 加载此目录
-│   ├── manifest.json
-│   ├── background.js
-│   ├── content.js
-│   ├── content.css
-│   ├── popup/
-│   ├── options/
-│   ├── _locales/
-│   └── icons/
-├── scripts/
-│   └── build-cmu-map.ts       ★ 构建脚本：从 CMU 词典提取精简 stress map
-├── tsconfig.json
-├── package.json
-└── esbuild.config.ts
-```
+// --- Parse CMU dict ---
 
-**关键变化**
+function parseCmuDict(text) {
+  const entries = new Map();
+  for (const line of text.split('\n')) {
+    if (!line || line.startsWith(';;;')) continue;
+    const match = line.match(/^([A-Z']+)\s+(.+)$/);
+    if (!match) continue;
+    const word = match[1].toLowerCase();
+    // Skip variant pronunciations like RECORD(2)
+    if (word.includes('(')) continue;
+    const phonemes = match[2].trim().split(/\s+/);
+    entries.set(word, phonemes);
+  }
+  return entries;
+}
 
-1. **Content script 合并打包**：不再逐个注入 4 个文件，由 esbuild 将 `content.ts`
-   及其依赖（sites/dom/bionic/stress）打包为单个 `dist/content.js`。
-   `background.ts` 只需注入一个文件，简化注入逻辑。
-2. **静态资源复制**：`manifest.json`、`_locales/`、`icons/`、HTML、CSS 在构建时
-   复制到 `dist/`。
-3. **全局函数 → ES Module import**：原来通过全局函数通信的模块改为标准 import/export。
+// --- Find stressed syllable letter range ---
 
-### 3.3 构建工具链
+// ARPAbet vowels (the phonemes that carry stress markers)
+const VOWEL_PHONEMES = new Set([
+  'AA', 'AE', 'AH', 'AO', 'AW', 'AY',
+  'EH', 'ER', 'EY', 'IH', 'IY',
+  'OW', 'OY', 'UH', 'UW',
+]);
 
-| 工具 | 用途 | 选择理由 |
-|------|------|----------|
-| **esbuild** | Bundler + TS 编译 | 极快（<100ms 构建），配置简单，适合扩展 |
-| **TypeScript** | 类型检查 (`tsc --noEmit`) | esbuild 只做转译不做类型检查，需要 tsc 补充 |
-| **@anthropic-ai/sdk** → **@types/chrome** | Chrome API 类型定义 | 编辑器补全 + 编译时检查 |
-| **cmu-pronouncing-dictionary** | CMU 数据源 | 构建时读取，提取精简 map |
+// Simple phoneme-to-letter-count mapping for alignment.
+// This is a rough heuristic — perfect alignment is impossible without
+// a full grapheme-to-phoneme model, but it's good enough for ~90% of words.
+function alignPhonemes(word, phonemes) {
+  // Strategy: walk through phonemes, consume letters proportionally.
+  // Track which phoneme index has primary stress (1).
+  let stressPhonemeIdx = -1;
+  for (let i = 0; i < phonemes.length; i++) {
+    const p = phonemes[i];
+    const base = p.replace(/[012]$/, '');
+    if (VOWEL_PHONEMES.has(base) && p.endsWith('1')) {
+      stressPhonemeIdx = i;
+      break;
+    }
+  }
+  if (stressPhonemeIdx === -1) return null;
 
-```json
-// package.json (核心部分)
-{
-  "scripts": {
-    "dev": "node esbuild.config.ts --watch",
-    "build": "tsc --noEmit && node esbuild.config.ts",
-    "build:cmu": "ts-node scripts/build-cmu-map.ts",
-    "typecheck": "tsc --noEmit"
-  },
-  "devDependencies": {
-    "esbuild": "^0.25.x",
-    "typescript": "^5.x",
-    "@anthropic-ai/sdk": "...",
-    "@types/chrome": "^0.0.x",
-    "cmu-pronouncing-dictionary": "^x.x.x"
+  // Proportional alignment: divide word length across phonemes
+  const lettersPerPhoneme = word.length / phonemes.length;
+  const start = Math.round(stressPhonemeIdx * lettersPerPhoneme);
+
+  // Find syllable boundaries: extend from stress phoneme to adjacent vowels
+  let phonemeEnd = stressPhonemeIdx + 1;
+  // Include trailing consonant phonemes (they belong to this syllable)
+  while (phonemeEnd < phonemes.length) {
+    const base = phonemes[phonemeEnd].replace(/[012]$/, '');
+    if (VOWEL_PHONEMES.has(base)) break;
+    phonemeEnd++;
+  }
+
+  const end = Math.min(Math.round(phonemeEnd * lettersPerPhoneme), word.length);
+
+  // Sanity: at least 1 char, not the entire word
+  if (start >= end || (start === 0 && end === word.length)) return null;
+
+  return [start, end];
+}
+
+// --- Main ---
+
+console.log('Reading CMU dict...');
+const dictText = readFileSync(DICT_PATH, 'utf-8');
+const dict = parseCmuDict(dictText);
+console.log(`Parsed ${dict.size} entries`);
+
+// Optional frequency filter
+let allowedWords = null;
+if (existsSync(FREQ_PATH)) {
+  console.log('Applying word frequency filter...');
+  const freqText = readFileSync(FREQ_PATH, 'utf-8');
+  allowedWords = new Set(
+    freqText.split('\n').map(w => w.trim().toLowerCase()).filter(Boolean)
+  );
+  console.log(`Frequency list: ${allowedWords.size} words`);
+}
+
+const stressMap = {};
+let count = 0;
+for (const [word, phonemes] of dict) {
+  // Skip short words (stress marking not useful)
+  if (word.length <= 3) continue;
+  // Skip if not in frequency list (when provided)
+  if (allowedWords && !allowedWords.has(word)) continue;
+  // Skip words with apostrophes
+  if (word.includes("'")) continue;
+
+  const range = alignPhonemes(word, phonemes);
+  if (range) {
+    stressMap[word] = range;
+    count++;
   }
 }
+
+console.log(`Generated stress map: ${count} entries`);
+
+// Write output
+const output = `// Auto-generated by scripts/build-stress-data.mjs — DO NOT EDIT
+// Source: CMU Pronouncing Dictionary (cmudict-0.7b)
+// Entries: ${count}
+//
+// Format: { word: [startIndex, endIndex] }
+// startIndex/endIndex mark the stressed syllable's letter range.
+
+// Guard against re-injection
+if (typeof CMU_STRESS_MAP === 'undefined') {
+var CMU_STRESS_MAP = ${JSON.stringify(stressMap, null, 0)};
+}
+`;
+
+writeFileSync(OUTPUT_PATH, output, 'utf-8');
+console.log(`Written to ${OUTPUT_PATH} (${(output.length / 1024).toFixed(0)} KB)`);
 ```
 
-### 3.4 CMU 词典数据策略
+**Step 2: Download CMU dict data and a word frequency list**
 
-完整 CMU 词典约 134K 词条，~5MB。对浏览器扩展过大。采用以下优化策略：
+Run:
+```bash
+cd extension/scripts
+curl -o cmudict-0.7b.txt https://raw.githubusercontent.com/cmusphinx/cmudict/master/cmudict-0.7b
+# Use a common English word frequency list (e.g. Google 10K or similar)
+# Place as word-freq.txt, one word per line
+```
 
-**构建时处理**（`scripts/build-cmu-map.ts`）：
+**Step 3: Run the script and verify output**
 
-1. 读取 `cmu-pronouncing-dictionary` npm 包的完整数据
-2. 解析每个词的 ARPAbet 音标，定位主重音（`1`）所在音节
-3. 将音节边界映射回原始字母位置，生成 `[startIndex, endIndex]`
-4. 输出精简 JSON：`{ "computer": [3, 5], "beautiful": [0, 4], ... }`
-5. 可选：只保留最常用 30K 词（覆盖 95%+ 日常文本），进一步缩减体积
+Run: `cd extension && node scripts/build-stress-data.mjs`
+Expected: `utils/stress-data.js` created, ~200-400KB, contains `var CMU_STRESS_MAP = {...};`
 
-**预估体积**：
+**Step 4: Spot-check the generated data**
 
-| 方案 | 词条数 | 原始大小 | gzip |
-|------|--------|---------|------|
-| 全量精简 | 134K | ~1.5 MB | ~500 KB |
-| Top 30K 高频词 | 30K | ~400 KB | ~150 KB |
+Verify in the output file:
+- `CMU_STRESS_MAP["computer"]` → `[3, 5]` (comPUter)
+- `CMU_STRESS_MAP["beautiful"]` → `[0, 4]` (BEAUtiful)
+- `CMU_STRESS_MAP["information"]` → `[5, 7]` (inforMAtion)
+- Short words (<=3 chars) are excluded
+- Total entry count is 15K-25K
 
-精简后的 JSON 在构建时内联到 `content.js` bundle 中。
+**Step 5: Add scripts/ data files to .gitignore selectively**
 
-### 3.5 新增模块设计：`src/utils/stress.ts`
+Add to `extension/.gitignore`:
+```
+scripts/cmudict-0.7b.txt
+scripts/word-freq.txt
+```
 
-```typescript
-// --- 类型定义 ---
+The generated `utils/stress-data.js` SHOULD be committed (it's a runtime dependency).
+The raw data files should NOT be committed (large, easily re-downloaded).
 
-interface StressResult {
-  /** 原始单词 */
-  word: string;
-  /** 重音大写后的结果，如 "comPUter" */
-  stressed: string;
-  /** 是否命中词典/规则 */
-  found: boolean;
+**Step 6: Commit**
+
+```bash
+git add scripts/build-stress-data.mjs scripts/README.md utils/stress-data.js .gitignore
+git commit -m "feat: add CMU stress data generation script and pre-built lookup table"
+```
+
+---
+
+### Task 2: Create stress.js module
+
+**Files:**
+- Create: `utils/stress.js`
+
+**Step 1: Write stress.js**
+
+```js
+// utils/stress.js — Stress capitalization for English words
+// Requires: utils/stress-data.js (CMU_STRESS_MAP) loaded first
+
+/**
+ * Apply stress capitalization to a single English word.
+ * Looks up the word in CMU_STRESS_MAP and capitalizes the stressed syllable.
+ *
+ * @param {string} word - A single word (no spaces/punctuation)
+ * @returns {string} The word with stressed syllable capitalized, or original if not found
+ */
+function stressifyWord(word) {
+  if (word.length <= 3) return word;
+
+  var range = CMU_STRESS_MAP[word.toLowerCase()];
+  if (!range) return word;
+
+  var start = range[0];
+  var end = range[1];
+  return word.slice(0, start) + word.slice(start, end).toUpperCase() + word.slice(end);
 }
 
-// --- 英语重音 ---
-
-/** 构建时生成的精简 CMU 数据，内联为 JSON */
-import cmuStressMap from '../data/cmu-stress-map.json';
-
 /**
- * 英语单词重音大写。
- * 查 CMU stress map，将重读音节的字母转为大写。
- * 未收录词返回原样。
+ * Process a text string, applying stress capitalization to each word.
+ * Non-word characters (spaces, punctuation) are preserved as-is.
+ * CJK characters are skipped (same logic as bionicify).
+ *
+ * @param {string} text - Input text
+ * @returns {string} Text with stressed syllables capitalized
  */
-export function stressifyEnglish(word: string): StressResult;
+function stressifyText(text) {
+  var CJK = '\u4e00-\u9fff\u3400-\u4dbf\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af\uf900-\ufaff';
+  var tokens = text.match(new RegExp('[' + CJK + ']|[^' + CJK + '\\s\\p{P}\\p{S}]+|[\\s\\p{P}\\p{S}]+', 'gu'));
+  if (!tokens) return text;
 
-// --- 西语重音 ---
-
-/**
- * 西语音节切分。
- * 处理二合元音（diphthong）、三合元音（triphthong）、
- * 元音分离（hiatus）等规则。
- */
-function syllabifySpanish(word: string): string[];
-
-/**
- * 西语重音定位（规则算法）。
- * 返回重读音节的索引。
- */
-function findSpanishStress(syllables: string[]): number;
-
-/**
- * 西语单词重音大写。
- */
-export function stressifySpanish(word: string): StressResult;
-
-// --- 统一入口 ---
-
-/**
- * 自动检测语言并应用重音大写。
- * 检测逻辑：含 ñ/¿/¡ 或 accent mark 的词视为西语，
- * 其余尝试英语词典查询。
- */
-export function stressify(word: string): StressResult;
-```
-
-### 3.6 与现有 bionic reading 流程的集成
-
-当前 `content.ts` 的处理流程：
-
-```
-processElement(el)
-  → getTextNodes(el)
-  → for each textNode:
-      → bionicify(text, intensity, mode)   // 返回 HTML string
-      → 替换 DOM 节点
-```
-
-新增 `stress` 模式后：
-
-```
-processElement(el)
-  → getTextNodes(el)
-  → for each textNode:
-      if mode === 'stress':
-        → stressifyText(text)              // 新函数：对整段文本逐词做重音大写
-        → 替换 DOM 节点（纯文本替换，不需要 <span> 包裹）
-      else:
-        → bionicify(text, intensity, mode) // 现有逻辑不变
-```
-
-`stress` 模式的渲染比 bionic/glideread 更简单——只需要替换字母大小写，
-不需要额外的 `<span>` 和 CSS 样式。
-
-### 3.7 类型定义：`src/types/settings.ts`
-
-```typescript
-export type ReadingMode = 'glideread' | 'bionic' | 'enlarge' | 'stress';
-export type BionicIntensity = 'light' | 'medium' | 'heavy';
-export type Theme = 'system' | 'light' | 'dark';
-
-export interface GlideReadSettings {
-  enabled: boolean;
-  fontScale: number;        // 1.0 - 1.5
-  lineHeightScale: number;  // 1.0 - 2.0
-  readingMode: ReadingMode;
-  bionicIntensity: BionicIntensity;
-  theme: Theme;
-  locale: string;
-  presetSites: string[];
-  customSites: string[];
+  return tokens.map(function(token) {
+    // Only process Latin/alphabetic words
+    if (/[\p{L}\p{N}]/u.test(token)) {
+      if (/[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/u.test(token)) {
+        return token;
+      }
+      return stressifyWord(token);
+    }
+    return token;
+  }).join('');
 }
 ```
 
-### 3.8 manifest.json 变更
+**Step 2: Verify the functions work in a browser console**
 
-```diff
- {
-   "manifest_version": 3,
--  "version": "1.2.5",
-+  "version": "2.0.0",
-   "background": {
-     "service_worker": "background.js"
-   }
-   // 其余不变——构建工具将 manifest.json 复制到 dist/
- }
+Load `stress-data.js` then `stress.js` in a browser console and test:
+```js
+stressifyWord('computer')   // → "comPUter"
+stressifyWord('the')        // → "the" (too short)
+stressifyWord('xyz')        // → "xyz" (not in dict)
+stressifyText('The computer is beautiful') // → "The comPUter is BEAUtiful"
 ```
 
-注入逻辑简化（`background.ts`）：
+**Step 3: Commit**
 
-```diff
-- // 当前：逐个注入 4 个文件
-- await chrome.scripting.executeScript({
--   target: { tabId },
--   files: ['utils/sites.js', 'utils/dom.js', 'utils/bionic.js', 'content.js']
-- });
-+ // 迁移后：esbuild 已将所有依赖打包为单文件
-+ await chrome.scripting.executeScript({
-+   target: { tabId },
-+   files: ['content.js']
-+ });
+```bash
+git add utils/stress.js
+git commit -m "feat: add stress.js — stress capitalization module"
 ```
 
-## 4. 迁移步骤
+---
 
-### Phase 1：工具链搭建
-1. `npm init` + 安装 devDependencies（esbuild, typescript, @types/chrome）
-2. 配置 `tsconfig.json`（strict mode, ES2020 target）
-3. 配置 `esbuild.config.ts`（多入口：background, content, popup, options）
-4. 静态资源复制脚本（manifest, _locales, icons, HTML, CSS）
-5. 验证：`npm run build` → `dist/` 输出 → Chrome 加载 `dist/` 功能正常
+### Task 3: Integrate stress mode into content.js
 
-### Phase 2：JS → TS 迁移
-1. 重命名 `.js` → `.ts`，修复编译错误
-2. 全局函数通信 → ES Module import/export
-3. 添加 `Settings` 等核心类型定义
-4. `tsc --noEmit` 零错误
+**Files:**
+- Modify: `content.js:26-35`
 
-### Phase 3：重音大写功能
-1. `scripts/build-cmu-map.ts`：构建精简词典
-2. `src/utils/stress.ts`：英语查表 + 西语规则算法
-3. `content.ts` 集成 `stress` 模式
-4. Options/Popup UI 添加 `stress` 选项
-5. i18n：四种语言（en/zh_CN/ja/ko）添加相关翻译
+**Step 1: Add stress mode branch**
 
-### Phase 4：优化与测试
-1. 词典体积优化（高频词子集 vs 全量）
-2. 构建产物体积检查
-3. 手动测试：preset sites + 自定义站点
-4. 可选：添加 vitest 单元测试（stress 模块优先）
+In `content.js`, the `processElement` function currently has:
 
-## 5. 风险与对策
+```js
+if (readingMode === 'glideread' || readingMode === 'bionic') {
+```
 
-| 风险 | 影响 | 对策 |
-|------|------|------|
-| CMU 音标到字母位置的映射不准确 | 重读音节标错 | 音节边界映射算法需要仔细测试，fallback 为不处理 |
-| 词典体积过大影响扩展安装体验 | 用户流失 | 高频词子集 + gzip；或 IndexedDB 延迟加载 |
-| esbuild 对 Chrome 扩展的兼容性 | 构建产物运行异常 | esbuild 在扩展场景已有大量实践，风险低 |
-| 西语音节切分边界情况多 | 部分词处理不正确 | 优先使用 `silabea` npm 包，或参考其算法自实现 |
-| TS 迁移引入回归 bug | 现有功能异常 | Phase 2 结束后做完整回归测试再进 Phase 3 |
+Add an `else if` branch after the closing `}` of this block:
+
+```js
+} else if (readingMode === 'stress') {
+  const textNodes = getTextNodes(el);
+  textNodes.forEach((textNode) => {
+    const stressed = stressifyText(textNode.textContent);
+    if (stressed !== textNode.textContent) {
+      textNode.textContent = stressed;
+    }
+  });
+}
+```
+
+Note: `stress` mode uses `textContent` replacement (pure text), not `innerHTML` — no `<span>` wrappers needed, zero CSS dependency.
+
+**Step 2: Commit**
+
+```bash
+git add content.js
+git commit -m "feat: integrate stress reading mode into content script"
+```
+
+---
+
+### Task 4: Update background.js injection list
+
+**Files:**
+- Modify: `background.js:10-13`
+- Modify: `background.js:94-97`
+
+**Step 1: Add stress-data.js and stress.js to both injection arrays**
+
+In `injectIfNeeded()` (line 12):
+
+```js
+files: ['utils/sites.js', 'utils/dom.js', 'utils/bionic.js', 'utils/stress-data.js', 'utils/stress.js', 'content.js'],
+```
+
+In `forceInject()` (line 96), same change:
+
+```js
+files: ['utils/sites.js', 'utils/dom.js', 'utils/bionic.js', 'utils/stress-data.js', 'utils/stress.js', 'content.js'],
+```
+
+**Step 2: Commit**
+
+```bash
+git add background.js
+git commit -m "feat: inject stress-data.js and stress.js in content script pipeline"
+```
+
+---
+
+### Task 5: Add "Stress" option to Options UI
+
+**Files:**
+- Modify: `options/options.html:42-47` (mode picker)
+- Modify: `options/options.html:191-194` (script imports)
+- Modify: `options/options.js:76-80` (MODE_DESC_KEYS)
+- Modify: `options/options.js:178-183` (preview rendering)
+
+**Step 1: Add Stress button to mode picker in HTML**
+
+In `options.html`, the mode picker segmented control, add a Stress button between Bionic and Enlarge:
+
+```html
+<button class="segmented-btn" data-value="bionic" data-i18n="modeBionic">Bionic</button>
+<button class="segmented-btn" data-value="stress" data-i18n="modeStress">Stress</button>
+<button class="segmented-btn" data-value="enlarge" data-i18n="modeEnlarge">Enlarge</button>
+```
+
+**Step 2: Add stress-data.js and stress.js script imports**
+
+In `options.html`, add after bionic.js and before i18n.js:
+
+```html
+<script src="../utils/sites.js"></script>
+<script src="../utils/bionic.js"></script>
+<script src="../utils/stress-data.js"></script>
+<script src="../utils/stress.js"></script>
+<script src="../utils/i18n.js"></script>
+<script src="options.js"></script>
+```
+
+**Step 3: Add stress mode description key to options.js**
+
+In `options.js`, update `MODE_DESC_KEYS`:
+
+```js
+const MODE_DESC_KEYS = {
+  glideread: 'modeGlidereadDesc',
+  bionic: 'modeBionicDesc',
+  stress: 'modeStressDesc',
+  enlarge: 'modeEnlargeDesc',
+};
+```
+
+**Step 4: Update preview to handle stress mode**
+
+In `options.js`, `updatePreview()`, change the mode rendering:
+
+```js
+if (mode === 'enlarge') {
+  previewBody.textContent = PREVIEW_TEXT;
+} else if (mode === 'stress') {
+  previewBody.textContent = stressifyText(PREVIEW_TEXT);
+} else {
+  previewBody.innerHTML = bionicify(PREVIEW_TEXT, intensity, mode);
+}
+```
+
+**Step 5: Commit**
+
+```bash
+git add options/options.html options/options.js
+git commit -m "feat: add Stress reading mode to Options UI with live preview"
+```
+
+---
+
+### Task 6: Add i18n translations for stress mode
+
+**Files:**
+- Modify: `utils/i18n.js`
+
+**Step 1: Add translation keys to all 4 locales**
+
+Add to each locale object in `TRANSLATIONS`:
+
+**English (en):** after `modeBionicDesc` line
+```js
+modeStress: 'Stress',
+modeStressDesc: 'Capitalize stressed syllables to reveal pronunciation rhythm. Great for language learners.',
+```
+
+**Chinese (zh):** after `modeBionicDesc` line
+```js
+modeStress: '重音',
+modeStressDesc: '将重读音节大写显示，帮助感知单词发音节奏。适合英语学习者。',
+```
+
+**Japanese (ja):** after `modeBionicDesc` line
+```js
+modeStress: 'ストレス',
+modeStressDesc: 'ストレス音節を大文字にして発音リズムを可視化します。語学学習者に最適です。',
+```
+
+**Korean (ko):** after `modeBionicDesc` line
+```js
+modeStress: '강세',
+modeStressDesc: '강세 음절을 대문자로 표시하여 발음 리듬을 보여줍니다. 어학 학습자에게 적합합니다.',
+```
+
+**Step 2: Commit**
+
+```bash
+git add utils/i18n.js
+git commit -m "feat: add i18n translations for stress reading mode (en/zh/ja/ko)"
+```
+
+---
+
+### Task 7: Update Safari build phase (safari repo)
+
+**Files:**
+- Modify: `safari/GlideRead/GlideRead.xcodeproj/project.pbxproj` (sed patterns in Prepare Safari Resources)
+
+**Step 1: Update the sed pattern for injection list**
+
+The current sed in the Xcode build phase patches `background.js` injection list. Update the match pattern to include the new files:
+
+Old pattern:
+```
+files: \['utils/sites.js', 'utils/dom.js', 'utils/bionic.js', 'content.js'\]
+```
+
+New pattern:
+```
+files: \['utils/sites.js', 'utils/dom.js', 'utils/bionic.js', 'utils/stress-data.js', 'utils/stress.js', 'content.js'\]
+```
+
+And the replacement adds `_safari-shim.js` at the front as before.
+
+No other Safari changes needed — `stress-data.js` and `stress.js` are plain JS files in `utils/`, they'll be picked up by the submodule automatically.
+
+**Step 2: Update Safari extension submodule to latest**
+
+```bash
+cd safari/GlideRead/Shared\ \(Extension\)/Resources
+git pull origin master
+cd ../../../..
+git add "GlideRead/Shared (Extension)/Resources"
+```
+
+**Step 3: Commit**
+
+```bash
+git add GlideRead/GlideRead.xcodeproj/project.pbxproj "GlideRead/Shared (Extension)/Resources"
+git commit -m "chore: update extension submodule + build phase for stress capitalization"
+```
+
+---
+
+### Task 8: Version bump
+
+**Files:**
+- Modify: `manifest.json:5`
+- Modify: `options/options.html:178`
+
+**Step 1: Bump version**
+
+In `manifest.json`: `"version": "1.3.0"`
+
+In `options.html`: `<span class="version-badge">v1.3.0</span>`
+
+**Step 2: Commit**
+
+```bash
+git add manifest.json options/options.html
+git commit -m "chore: bump version to v1.3.0 — stress capitalization"
+```
+
+---
+
+### Task 9: Manual testing checklist
+
+**Chrome:**
+- [ ] Load unpacked extension from `extension/` directory
+- [ ] Options page: "Stress" appears in reading mode picker between Bionic and Enlarge
+- [ ] Options page: selecting Stress shows correct description in all 4 languages
+- [ ] Options preview: shows stressed text (e.g. "comPUter", "BEAUtiful")
+- [ ] Enable a preset site (e.g. news.ycombinator.com), visit it, set mode to Stress
+- [ ] Verify: multi-syllable words have stressed syllable capitalized
+- [ ] Verify: short words (<=3 chars) unchanged
+- [ ] Verify: words not in CMU dict unchanged
+- [ ] Verify: CJK text unchanged
+- [ ] Verify: switching back to GlideRead/Bionic/Enlarge still works
+- [ ] Alt+G force-inject on a non-preset site works with Stress mode
+
+**Safari (if building locally):**
+- [ ] Build & run in Xcode (iOS simulator + macOS)
+- [ ] Options page shows Stress mode option
+- [ ] Content injection works with Stress mode on a preset site
+
+---
+
+## Notes for the implementing agent
+
+- **Do NOT introduce any build tools** (esbuild, webpack, TypeScript, npm dependencies). The extension must remain zero-build.
+- **`var` declarations** in `stress-data.js` are intentional — they use the re-injection guard pattern (`if (typeof CMU_STRESS_MAP === 'undefined')`) consistent with `sites.js` and `dom.js`.
+- **`stress.js` uses `function` declarations** (not `const`/arrow) for the same reason — these files may be re-injected and need to be idempotent.
+- The phoneme-to-letter alignment in the generation script is a **heuristic**. It won't be perfect for every word. That's OK — incorrect entries can be manually fixed in the generated data.
+- **Safari Task 7** must be done in the `safari` repo, not the `extension` repo.
+- **Task 1 (data generation) must complete first** — all other tasks depend on `utils/stress-data.js` existing. Tasks 2-6 can be parallelized after Task 1. Task 7 depends on the extension changes being pushed. Task 8 is last.

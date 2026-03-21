@@ -43,8 +43,20 @@
             <span class="segmented-indicator"></span>
             <button class="segmented-btn" data-value="glideread">GlideRead</button>
             <button class="segmented-btn" data-value="bionic" data-i18n="modeBionic">Bionic</button>
-            <button class="segmented-btn" data-value="enlarge" data-i18n="modeEnlarge">Enlarge</button>
+            <button class="segmented-btn" data-value="off" data-i18n="modeOff">Off</button>
           </div>
+        </div>
+
+        <!-- Stress Capitalization Toggle -->
+        <div class="setting-row setting-row-inline">
+          <div>
+            <p class="setting-title" data-i18n="stressTitle">Stress Capitalization</p>
+            <p class="setting-desc" data-i18n="stressDesc">Capitalize stressed syllables to reveal pronunciation rhythm.</p>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="stress-toggle">
+            <span class="toggle-track"></span>
+          </label>
         </div>
 
         <!-- Preview Card -->
@@ -175,7 +187,7 @@
       <div class="setting-divider"></div>
       <div class="about-row">
         <span class="about-text">
-          <span class="version-badge">v1.2.5</span>
+          <span class="version-badge">v1.3.0</span>
           <span class="about-dot">&middot;</span>
           <span data-i18n="madeBy">Made by</span> <a href="https://chihao.li" target="_blank" rel="noopener noreferrer">psylch</a>
         </span>
@@ -190,6 +202,8 @@
 
   <script src="../utils/sites.js"></script>
   <script src="../utils/bionic.js"></script>
+  <script src="../utils/stress-data.js"></script>
+  <script src="../utils/stress.js"></script>
   <script src="../utils/i18n.js"></script>
   <script src="options.js"></script>
 </body>

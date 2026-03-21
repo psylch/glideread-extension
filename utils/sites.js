@@ -22,6 +22,7 @@ var DEFAULT_SETTINGS = {
   lineHeightScale: 1.5,
   readingMode: 'glideread',
   bionicIntensity: 'medium',
+  stressEnabled: false,
   presetSites: { ...DEFAULT_PRESET_SITES },
   customSites: [],
   disabledSites: [],
