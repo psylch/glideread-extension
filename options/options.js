@@ -3,6 +3,42 @@ async function loadSettings() {
   return getSettings();
 }
 
+const addSiteButton = document.getElementById('add-site-btn');
+const addSiteInput = document.getElementById('new-site');
+const addSiteFeedback = document.getElementById('add-site-feedback');
+
+function setAddSiteFeedback(message, tone) {
+  if (!addSiteFeedback) return;
+  if (!message) {
+    addSiteFeedback.hidden = true;
+    addSiteFeedback.textContent = '';
+    addSiteFeedback.removeAttribute('data-tone');
+    return;
+  }
+  addSiteFeedback.hidden = false;
+  addSiteFeedback.textContent = message;
+  if (tone) {
+    addSiteFeedback.setAttribute('data-tone', tone);
+  } else {
+    addSiteFeedback.removeAttribute('data-tone');
+  }
+}
+
+function normalizeCustomSiteInput(value) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/\/.*$/, '')
+    .replace(/:\d+$/, '')
+    .replace(/^\*\./, '')
+    .replace(/\.+$/, '');
+}
+
+function isValidDomain(domain) {
+  return /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/.test(domain);
+}
+
 // ---- Sliding Indicator Helpers ----
 
 function positionIndicator(container) {
@@ -275,6 +311,9 @@ async function init() {
   renderPresetSites(settings.presetSites || {});
   renderCustomSites(settings.customSites || []);
   document.getElementById('add-site-btn').addEventListener('click', addCustomSite);
+  document.getElementById('new-site').addEventListener('input', () => {
+    setAddSiteFeedback('');
+  });
   document.getElementById('new-site').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') addCustomSite();
   });
@@ -371,10 +410,11 @@ function renderCustomSites(customSites) {
     row.appendChild(removeBtn);
 
     removeBtn.addEventListener('click', async () => {
+      setAddSiteFeedback('');
       await removeSitePermission(site);
       const settings = await loadSettings();
       settings.customSites.splice(index, 1);
-      chrome.storage.sync.set({ customSites: settings.customSites });
+      await saveSettings({ customSites: settings.customSites });
       renderCustomSites(settings.customSites);
     });
     container.appendChild(row);
@@ -382,26 +422,49 @@ function renderCustomSites(customSites) {
 }
 
 async function addCustomSite() {
-  const input = document.getElementById('new-site');
-  let domain = input.value.trim().toLowerCase();
-  if (!domain) return;
-
-  // Strip protocol and trailing path
-  domain = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
-
-  const settings = await loadSettings();
-  if (!settings.customSites) {
-    settings.customSites = [];
+  const input = addSiteInput;
+  const button = addSiteButton;
+  let domain = normalizeCustomSiteInput(input.value);
+  if (!domain) {
+    setAddSiteFeedback('Enter a domain like example.com.', 'error');
+    return;
+  }
+  if (!isValidDomain(domain)) {
+    setAddSiteFeedback('That does not look like a valid domain.', 'error');
+    return;
   }
 
-  if (!settings.customSites.includes(domain)) {
+  button.disabled = true;
+  setAddSiteFeedback(`Adding ${domain}...`);
+
+  try {
+    const settings = await loadSettings();
+    if (!settings.customSites) {
+      settings.customSites = [];
+    }
+
+    if (settings.customSites.includes(domain)) {
+      setAddSiteFeedback(`${domain} is already in your custom sites.`, 'success');
+      input.value = '';
+      return;
+    }
+
     const granted = await requestSitePermission(domain);
-    if (!granted) return;
+    if (!granted) {
+      setAddSiteFeedback(`Safari did not allow ${domain}.`, 'error');
+      return;
+    }
+
     settings.customSites.push(domain);
-    chrome.storage.sync.set({ customSites: settings.customSites });
+    await saveSettings({ customSites: settings.customSites });
     renderCustomSites(settings.customSites);
+    input.value = '';
+    setAddSiteFeedback(`${domain} added.`, 'success');
+  } catch (_error) {
+    setAddSiteFeedback(`Couldn't add ${domain}.`, 'error');
+  } finally {
+    button.disabled = false;
   }
-  input.value = '';
 }
 
 // Reposition all indicators (after resize, lang switch, etc.)

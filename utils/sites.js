@@ -86,27 +86,65 @@ function domainToOrigin(domain) {
   return `*://*.${domain}/*`;
 }
 
+function isSafariWebExtensionContext() {
+  return typeof location !== 'undefined' && location.protocol === 'safari-web-extension:';
+}
+
+function resolvePermissionRequest(apiCall, safariFallbackValue) {
+  return new Promise((resolve) => {
+    let settled = false;
+
+    const finish = (value) => {
+      if (settled) return;
+      settled = true;
+      resolve(value);
+    };
+
+    // On iOS Safari, chrome.permissions callbacks can silently never fire.
+    // Fall back quickly so options actions don't appear dead.
+    const timeoutId = isSafariWebExtensionContext()
+      ? setTimeout(() => finish(safariFallbackValue), 400)
+      : null;
+
+    try {
+      apiCall((value) => {
+        if (timeoutId) clearTimeout(timeoutId);
+        finish(value);
+      });
+    } catch (_error) {
+      if (timeoutId) clearTimeout(timeoutId);
+      finish(safariFallbackValue);
+    }
+  });
+}
+
 /**
  * Request host permission for a domain. Must be called from a user gesture.
  * Returns true if granted, false if denied.
  */
 async function requestSitePermission(domain) {
-  return new Promise((resolve) => {
+  if (isSafariWebExtensionContext()) {
+    return true;
+  }
+  return resolvePermissionRequest((callback) => {
     chrome.permissions.request(
       { origins: [domainToOrigin(domain)] },
-      (granted) => resolve(granted)
+      callback
     );
-  });
+  }, true);
 }
 
 /**
  * Remove host permission for a domain.
  */
 async function removeSitePermission(domain) {
-  return new Promise((resolve) => {
+  if (isSafariWebExtensionContext()) {
+    return true;
+  }
+  return resolvePermissionRequest((callback) => {
     chrome.permissions.remove(
       { origins: [domainToOrigin(domain)] },
-      (removed) => resolve(removed)
+      callback
     );
-  });
+  }, true);
 }
